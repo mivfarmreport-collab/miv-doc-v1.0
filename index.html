@@ -1,0 +1,2982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1D4ED8" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>MIV DOC Delivery — Farm Operations & Cloud Sync</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            miv: {
+              50: '#EFF6FF',
+              100: '#DBEAFE',
+              200: '#BFDBFE',
+              300: '#93C5FD',
+              400: '#60A5FA',
+              500: '#3B82F6',
+              600: '#2563EB',
+              700: '#1D4ED8',
+              800: '#1E40AF',
+              900: '#1E3A8A',
+            }
+          },
+          boxShadow: {
+            'material': '0 2px 10px -1px rgba(29, 78, 216, 0.08), 0 1px 4px -1px rgba(15, 23, 42, 0.06)',
+            'material-lg': '0 10px 25px -5px rgba(29, 78, 216, 0.14), 0 4px 10px -2px rgba(15, 23, 42, 0.06)',
+            'nav': '0 -4px 20px rgba(15, 23, 42, 0.08)',
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F1F5F9;
+      color: #0F172A;
+      overscroll-behavior-y: contain;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #EFF6FF;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #93C5FD;
+      border-radius: 9999px;
+    }
+    /* Android Material ripple feel */
+    .tap-scale {
+      transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .tap-scale:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    /* Print styling for Executive Report */
+    @media print {
+      body {
+        background: #FFFFFF !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+      }
+      .print-card {
+        break-inside: avoid;
+        border: 1px solid #CBD5E1 !important;
+        box-shadow: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-100 text-slate-900">
+
+  <!-- ==================== TOP ANDROID APP BAR ==================== -->
+  <header class="no-print sticky top-0 z-40 bg-gradient-to-r from-miv-800 via-miv-700 to-miv-600 text-white shadow-lg">
+    <div class="max-w-3xl mx-auto px-4 pt-3 pb-3">
+      <div class="flex items-center justify-between gap-2">
+        <!-- App Identity -->
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/25 flex items-center justify-center shrink-0 shadow-inner">
+            <i class="fa-solid fa-feather-pointed text-lg text-white"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h1 class="text-base sm:text-lg font-extrabold tracking-tight truncate">MIV DOC Delivery</h1>
+              <span class="hidden sm:inline-block text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/15 text-blue-100">PWA</span>
+            </div>
+            <p class="text-[11px] text-blue-100 truncate">Day Old Chick Delivery & Farm Report</p>
+          </div>
+        </div>
+
+        <!-- Dropbox Sync Status Pill -->
+        <button
+          id="headerSyncBtn"
+          onclick="openSyncModal()"
+          class="tap-scale flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/15 hover:bg-white/25 border border-white/25 text-xs font-semibold shrink-0"
+          title="Configure Dropbox Cloud Sync"
+        >
+          <span id="syncStatusDot" class="w-2.5 h-2.5 rounded-full bg-amber-300"></span>
+          <span id="syncStatusText">Local Only</span>
+          <i class="fa-brands fa-dropbox text-blue-100 ml-0.5"></i>
+        </button>
+      </div>
+
+      <!-- Role Switcher Bar (User Mode vs Admin Mode) -->
+      <div class="mt-3 flex items-center justify-between gap-2 bg-miv-900/45 p-1 rounded-2xl border border-white/15">
+        <button
+          id="roleUserBtn"
+          onclick="switchRole('user')"
+          class="tap-scale flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all bg-white text-miv-700 shadow"
+        >
+          <i class="fa-solid fa-clipboard-user"></i>
+          <span>User Mode</span>
+        </button>
+        <button
+          id="roleAdminBtn"
+          onclick="switchRole('admin')"
+          class="tap-scale flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all text-blue-100 hover:text-white"
+        >
+          <i id="adminLockIcon" class="fa-solid fa-lock text-xs"></i>
+          <span>Admin Mode</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT AREA ==================== -->
+  <main class="flex-1 max-w-3xl w-full mx-auto px-3 sm:px-4 pt-4 pb-28 print-container">
+
+    <!-- ============================================================
+         TAB 1: USER DAILY INPUT CARD (JOTFORM STYLE)
+         ============================================================ -->
+    <section id="view-entry" class="space-y-4">
+      <!-- Jotform-style Top Banner Card -->
+      <div class="bg-white rounded-3xl shadow-material border border-blue-100 overflow-hidden">
+        <div class="h-2.5 bg-gradient-to-r from-miv-700 via-miv-500 to-cyan-500"></div>
+        <div class="p-5 flex items-start justify-between gap-3">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-miv-50 text-miv-700 border border-miv-200 mb-2">
+              <i class="fa-solid fa-truck-ramp-box"></i> DAILY DOC RECEIVING FORM
+            </span>
+            <h2 class="text-xl font-extrabold text-slate-900">Day Old Chick Delivery Card</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Select Group, House, Arrival Time & weights. Average chick weight updates automatically.</p>
+          </div>
+          <button
+            type="button"
+            onclick="resetEntryForm(true)"
+            class="tap-scale p-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-semibold shrink-0"
+            title="Clear Form"
+          >
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 1: GROUP & HOUSE SELECTOR PILLS -->
+      <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-5">
+        <div>
+          <div class="flex items-center justify-between mb-2.5">
+            <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-miv-600 text-white text-xs font-extrabold flex items-center justify-center">1</span>
+              Select Farm Group <span class="text-red-500">*</span>
+            </label>
+            <span id="selectedGroupBadge" class="text-xs font-semibold text-miv-600">Required</span>
+          </div>
+          <div id="entryGroupPills" class="flex flex-wrap gap-2">
+            <!-- Dynamically populated Group pills -->
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-4">
+          <div class="flex items-center justify-between mb-2.5">
+            <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-miv-600 text-white text-xs font-extrabold flex items-center justify-center">2</span>
+              Select House Number <span class="text-red-500">*</span>
+            </label>
+            <span id="houseFilterHint" class="text-xs font-medium text-slate-400">Select a group first</span>
+          </div>
+          <div id="entryHousePills" class="flex flex-wrap gap-2">
+            <!-- Dynamically populated House pills filtered by Group -->
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: DATE (AUTO) & TIME (MANUAL ONLY - REQUIRED TO ENABLE SUBMIT) -->
+      <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-miv-600 text-white text-xs font-extrabold flex items-center justify-center">3</span>
+            Delivery Date & Arrival Time <span class="text-red-500">*</span>
+          </label>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Auto Date -->
+          <div class="bg-miv-50/70 border border-miv-200 rounded-2xl p-3.5">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-miv-800 uppercase tracking-wider">Delivery Date</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-miv-100 text-miv-700">Auto-Filled</span>
+            </div>
+            <input
+              type="date"
+              id="entryDate"
+              onchange="validateEntryForm()"
+              class="w-full bg-white border border-miv-200 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+          </div>
+
+          <!-- Manual Time (DO NOT AUTO-FILL) -->
+          <div id="timeInputCard" class="bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-3.5 transition-colors">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-bold text-amber-900 uppercase tracking-wider">Arrival Time *</span>
+              <span id="timeStatusTag" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">Manual Required</span>
+            </div>
+            <input
+              type="time"
+              id="entryTime"
+              value=""
+              onchange="onTimeChanged()"
+              oninput="onTimeChanged()"
+              class="w-full bg-white border border-amber-300 rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+            <p id="timeHelperText" class="text-[11px] font-semibold text-amber-800 mt-1.5 flex items-center gap-1">
+              <i class="fa-solid fa-clock"></i> Select arrival/delivery time to unlock Submit
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: SUPPLIER SELECTOR PILLS -->
+      <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5">
+        <div class="flex items-center justify-between mb-3">
+          <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-miv-600 text-white text-xs font-extrabold flex items-center justify-center">4</span>
+            Select Hatchery / Supplier <span class="text-red-500">*</span>
+          </label>
+          <span id="selectedSupplierBadge" class="text-xs font-semibold text-slate-400">Tap to choose</span>
+        </div>
+        <div id="entrySupplierPills" class="flex flex-wrap gap-2">
+          <!-- Dynamically populated Supplier pills -->
+        </div>
+      </div>
+
+      <!-- STEP 4: BIRD COUNTS (TOTAL, DEAD, CULL) -->
+      <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-miv-600 text-white text-xs font-extrabold flex items-center justify-center">5</span>
+            DOC Bird Quantities <span class="text-red-500">*</span>
+          </label>
+          <span class="text-xs font-semibold text-slate-400">Headcount</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <!-- Total Birds -->
+          <div class="bg-blue-50/60 border border-blue-200 rounded-2xl p-3.5">
+            <label for="entryTotalBirds" class="block text-xs font-bold text-miv-800 mb-1">
+              Total Birds Received *
+            </label>
+            <input
+              type="number"
+              inputmode="numeric"
+              min="1"
+              step="1"
+              id="entryTotalBirds"
+              placeholder="e.g. 15000"
+              oninput="recalculateMetrics()"
+              class="w-full bg-white border border-blue-200 rounded-xl px-3.5 py-2.5 text-base font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+          </div>
+
+          <!-- Dead Birds -->
+          <div class="bg-rose-50/60 border border-rose-200 rounded-2xl p-3.5">
+            <label for="entryDeadBirds" class="block text-xs font-bold text-rose-800 mb-1">
+              Dead (DOA)
+            </label>
+            <input
+              type="number"
+              inputmode="numeric"
+              min="0"
+              step="1"
+              id="entryDeadBirds"
+              placeholder="0"
+              oninput="recalculateMetrics()"
+              class="w-full bg-white border border-rose-200 rounded-xl px-3.5 py-2.5 text-base font-extrabold text-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500"
+            />
+          </div>
+
+          <!-- Cull Birds -->
+          <div class="bg-amber-50/60 border border-amber-200 rounded-2xl p-3.5">
+            <label for="entryCullBirds" class="block text-xs font-bold text-amber-800 mb-1">
+              Cull Birds
+            </label>
+            <input
+              type="number"
+              inputmode="numeric"
+              min="0"
+              step="1"
+              id="entryCullBirds"
+              placeholder="0"
+              oninput="recalculateMetrics()"
+              class="w-full bg-white border border-amber-200 rounded-xl px-3.5 py-2.5 text-base font-extrabold text-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            />
+          </div>
+        </div>
+
+        <!-- Live Net Birds & Mortality Summary Strip -->
+        <div class="grid grid-cols-3 gap-2 bg-slate-50 border border-slate-200/90 rounded-2xl p-3 text-center">
+          <div>
+            <p class="text-[11px] font-semibold text-slate-500">Net Live DOC</p>
+            <p id="calcNetBirds" class="text-base sm:text-lg font-extrabold text-emerald-600">0</p>
+          </div>
+          <div class="border-x border-slate-200">
+            <p class="text-[11px] font-semibold text-slate-500">DOA + Cull</p>
+            <p id="calcLossBirds" class="text-base sm:text-lg font-extrabold text-rose-600">0</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-semibold text-slate-500">Loss Rate</p>
+            <p id="calcLossPct" class="text-base sm:text-lg font-extrabold text-slate-700">0.00%</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5: BASKET WEIGHTS & LIVE BIRDS AVERAGE WEIGHT (GRAM) -->
+      <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-miv-600 text-white text-xs font-extrabold flex items-center justify-center">6</span>
+            Basket Weighing (Kg) & Avg Weight
+          </label>
+          <span class="text-xs font-bold text-miv-600 bg-miv-50 px-2.5 py-1 rounded-full">5-Basket Sample</span>
+        </div>
+
+        <!-- 5 Individual Basket Gross Weight Inputs ("Bakul Weight") -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <label class="block text-xs font-bold text-slate-700">
+              5 Basket Gross Weight ("Bakul Weight") in Kg
+            </label>
+            <span class="text-xs font-extrabold text-miv-700 bg-miv-100/80 px-2.5 py-1 rounded-lg">
+              Total 5 Bakul: <span id="calcTotalBakulDisplay">0.00</span> Kg
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+            <div>
+              <label for="entryBakul1" class="block text-[11px] font-bold text-slate-500 mb-1">Bakul 1 (Kg)</label>
+              <input
+                type="number"
+                inputmode="decimal"
+                step="0.01"
+                min="0"
+                id="entryBakul1"
+                placeholder="0.00"
+                oninput="recalculateMetrics()"
+                class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-miv-500"
+              />
+            </div>
+            <div>
+              <label for="entryBakul2" class="block text-[11px] font-bold text-slate-500 mb-1">Bakul 2 (Kg)</label>
+              <input
+                type="number"
+                inputmode="decimal"
+                step="0.01"
+                min="0"
+                id="entryBakul2"
+                placeholder="0.00"
+                oninput="recalculateMetrics()"
+                class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-miv-500"
+              />
+            </div>
+            <div>
+              <label for="entryBakul3" class="block text-[11px] font-bold text-slate-500 mb-1">Bakul 3 (Kg)</label>
+              <input
+                type="number"
+                inputmode="decimal"
+                step="0.01"
+                min="0"
+                id="entryBakul3"
+                placeholder="0.00"
+                oninput="recalculateMetrics()"
+                class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-miv-500"
+              />
+            </div>
+            <div>
+              <label for="entryBakul4" class="block text-[11px] font-bold text-slate-500 mb-1">Bakul 4 (Kg)</label>
+              <input
+                type="number"
+                inputmode="decimal"
+                step="0.01"
+                min="0"
+                id="entryBakul4"
+                placeholder="0.00"
+                oninput="recalculateMetrics()"
+                class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-miv-500"
+              />
+            </div>
+            <div class="col-span-2 sm:col-span-1">
+              <label for="entryBakul5" class="block text-[11px] font-bold text-slate-500 mb-1">Bakul 5 (Kg)</label>
+              <input
+                type="number"
+                inputmode="decimal"
+                step="0.01"
+                min="0"
+                id="entryBakul5"
+                placeholder="0.00"
+                oninput="recalculateMetrics()"
+                class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-miv-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty Basket Weight -->
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5">
+          <label for="entryEmptyBakul" class="block text-xs font-bold text-slate-700 mb-1">
+            Empty Basket Weight ("Empty Bakul") in Kg
+          </label>
+          <div class="relative">
+            <input
+              type="number"
+              inputmode="decimal"
+              step="0.01"
+              min="0"
+              id="entryEmptyBakul"
+              placeholder="e.g. 6.00"
+              oninput="recalculateMetrics()"
+              class="w-full bg-white border border-slate-300 rounded-xl pl-3.5 pr-12 py-2.5 text-base font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+            <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">KG</span>
+          </div>
+        </div>
+
+        <!-- Prominent Live Birds Average Weight Display Card -->
+        <div class="rounded-2xl bg-gradient-to-br from-miv-700 via-miv-600 to-blue-500 text-white p-4 shadow-md">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-blue-100 flex items-center gap-1.5">
+                <i class="fa-solid fa-scale-balanced"></i> Birds Average Weight (Gram)
+              </p>
+              <p id="calcAvgWeightDisplay" class="text-3xl sm:text-4xl font-extrabold tracking-tight mt-1">
+                0.00 <span class="text-lg font-bold text-blue-100">g</span>
+              </p>
+              <p id="calcFormulaBreakdown" class="text-[11px] text-blue-100 mt-1 font-mono">
+                (((total 5 bakul / 5) - empty bakul) / 500) × 1000
+              </p>
+            </div>
+            <div class="w-14 h-14 rounded-2xl bg-white/15 border border-white/25 flex flex-col items-center justify-center shrink-0">
+              <i class="fa-solid fa-feather text-xl"></i>
+              <span class="text-[10px] font-bold mt-0.5">DOC AVG</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 6: BIRDS CONDITION & RESULT SELECTOR PILLS -->
+      <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-miv-600 text-white text-xs font-extrabold flex items-center justify-center">7</span>
+            Birds Condition & Quality Result
+          </label>
+          <span class="text-xs font-semibold text-miv-600">Multi-select pills</span>
+        </div>
+
+        <div id="entryConditionPills" class="flex flex-wrap gap-2">
+          <!-- Dynamically populated Condition pills -->
+        </div>
+
+        <div class="pt-2">
+          <label for="entryRemarks" class="block text-xs font-bold text-slate-600 mb-1.5">
+            Additional Remarks / Driver / Truck Note (Optional)
+          </label>
+          <textarea
+            id="entryRemarks"
+            rows="2"
+            placeholder="e.g. Delivered in clean ventilated lorry, chicks active upon unloading..."
+            class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-miv-500"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- SUBMIT DOC & SHARE CTA CARD -->
+      <div class="bg-white rounded-3xl shadow-material border border-blue-100 p-5 space-y-3">
+        <div id="submitValidationBanner" class="flex items-center gap-2.5 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold">
+          <i class="fa-solid fa-circle-exclamation text-amber-600 text-base shrink-0"></i>
+          <span id="submitValidationMsg">Please select Arrival Time (and required Group, House, Supplier & Total Birds) to enable submission.</span>
+        </div>
+
+        <button
+          type="button"
+          id="submitDocBtn"
+          disabled
+          onclick="handleDocSubmit()"
+          class="tap-scale w-full py-4 px-6 rounded-2xl font-extrabold text-base tracking-wide flex items-center justify-center gap-3 shadow-lg transition-all disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none disabled:cursor-not-allowed bg-gradient-to-r from-miv-700 via-miv-600 to-emerald-600 hover:from-miv-800 hover:to-emerald-700 text-white"
+        >
+          <i class="fa-brands fa-whatsapp text-xl"></i>
+          <span>SUBMIT DOC & SHARE</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TAB 2: MY LOGS PAGE (VIEW, RE-SHARE, PASSWORD-PROTECTED AMEND & DELETE)
+         ============================================================ -->
+    <section id="view-logs" class="hidden space-y-4">
+      <div class="bg-white rounded-3xl shadow-material border border-blue-100 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-xl font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-miv-600"></i> My DOC Delivery Logs
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">View submitted deliveries, re-share to WhatsApp, or Amend/Delete (Password protected).</p>
+          </div>
+          <span id="logSessionBadge" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600">
+            <i class="fa-solid fa-lock"></i> Edit Locked
+          </span>
+        </div>
+
+        <!-- Filters -->
+        <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input
+              type="text"
+              id="logSearchInput"
+              placeholder="Search supplier, remarks..."
+              oninput="renderLogs()"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+          </div>
+          <select
+            id="logGroupFilter"
+            onchange="renderLogs()"
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-miv-500"
+          >
+            <option value="ALL">All Farm Groups</option>
+          </select>
+          <input
+            type="date"
+            id="logDateFilter"
+            onchange="renderLogs()"
+            class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-miv-500"
+          />
+        </div>
+      </div>
+
+      <!-- Logs Container -->
+      <div id="logsListContainer" class="space-y-3">
+        <!-- Rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TAB 3: EXECUTIVE REPORT PAGE (GROUP & HOUSE BREAKDOWN)
+         ============================================================ -->
+    <section id="view-report" class="hidden space-y-4">
+      <!-- Report Header & Controls -->
+      <div class="bg-white rounded-3xl shadow-material border border-blue-100 p-5 print-card">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-miv-50 text-miv-700 border border-miv-200 mb-1.5">
+              <i class="fa-solid fa-chart-pie"></i> AUTOMATED EXECUTIVE SUMMARY
+            </span>
+            <h2 class="text-xl font-extrabold text-slate-900">MIV DOC Executive Farm Report</h2>
+            <p id="reportGeneratedTimestamp" class="text-xs text-slate-500 mt-0.5">Group & House Performance Breakdown</p>
+          </div>
+
+          <div class="no-print flex flex-wrap gap-2">
+            <button
+              onclick="shareExecutiveReportWhatsApp()"
+              class="tap-scale px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
+            >
+              <i class="fa-brands fa-whatsapp text-sm"></i> Share Report
+            </button>
+            <button
+              onclick="window.print()"
+              class="tap-scale px-3.5 py-2 rounded-xl bg-miv-600 hover:bg-miv-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
+            >
+              <i class="fa-solid fa-print"></i> Print / PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Report Filter Controls -->
+        <div class="no-print mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Filter Group</label>
+            <select
+              id="reportGroupFilter"
+              onchange="renderExecutiveReport()"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800"
+            >
+              <option value="ALL">All Groups</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">From Date</label>
+            <input
+              type="date"
+              id="reportFromDate"
+              onchange="renderExecutiveReport()"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800"
+            />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">To Date</label>
+            <input
+              type="date"
+              id="reportToDate"
+              onchange="renderExecutiveReport()"
+              class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Fleet KPI Cards -->
+      <div id="reportKpiGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Group & House Detailed Breakdown -->
+      <div id="reportGroupBreakdown" class="space-y-4">
+        <!-- Populated dynamically -->
+      </div>
+    </section>
+
+    <!-- ============================================================
+         TAB 4: ADMIN MANAGEMENT PANEL (PASSWORD PROTECTED)
+         ============================================================ -->
+    <section id="view-admin" class="hidden space-y-4">
+      <!-- Admin Header Card -->
+      <div class="bg-gradient-to-r from-miv-800 to-miv-600 text-white rounded-3xl shadow-material-lg p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-white/15 text-blue-100 uppercase tracking-wider mb-1">
+              <i class="fa-solid fa-shield-halved"></i> Administrator Console
+            </span>
+            <h2 class="text-xl font-extrabold">Farm Master Setup & Cloud Sync</h2>
+            <p class="text-xs text-blue-100 mt-0.5">Every change auto-saves and syncs to Dropbox <code class="bg-white/15 px-1.5 py-0.5 rounded">data/miv_doc_database.json</code></p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              onclick="navigateTab('report')"
+              class="tap-scale px-3.5 py-2 rounded-xl bg-white text-miv-700 text-xs font-extrabold flex items-center gap-1.5 shadow"
+            >
+              <i class="fa-solid fa-file-invoice"></i> Generate Report
+            </button>
+            <button
+              onclick="lockAdminAndExit()"
+              class="tap-scale px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold flex items-center gap-1.5"
+              title="Lock Admin Mode"
+            >
+              <i class="fa-solid fa-lock"></i> Lock
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin Sub-Navigation Pills -->
+      <div class="flex overflow-x-auto gap-2 pb-1 no-scrollbar">
+        <button onclick="switchAdminSubTab('groupsHouses')" id="adminSub-groupsHouses" class="admin-sub-btn tap-scale shrink-0 px-4 py-2.5 rounded-2xl text-xs font-bold bg-miv-600 text-white shadow">
+          <i class="fa-solid fa-warehouse mr-1.5"></i>Groups & Houses
+        </button>
+        <button onclick="switchAdminSubTab('suppliers')" id="adminSub-suppliers" class="admin-sub-btn tap-scale shrink-0 px-4 py-2.5 rounded-2xl text-xs font-bold bg-white text-slate-700 border border-slate-200">
+          <i class="fa-solid fa-truck mr-1.5"></i>Suppliers
+        </button>
+        <button onclick="switchAdminSubTab('conditions')" id="adminSub-conditions" class="admin-sub-btn tap-scale shrink-0 px-4 py-2.5 rounded-2xl text-xs font-bold bg-white text-slate-700 border border-slate-200">
+          <i class="fa-solid fa-tags mr-1.5"></i>Condition Pills
+        </button>
+        <button onclick="switchAdminSubTab('cloudSecurity')" id="adminSub-cloudSecurity" class="admin-sub-btn tap-scale shrink-0 px-4 py-2.5 rounded-2xl text-xs font-bold bg-white text-slate-700 border border-slate-200">
+          <i class="fa-brands fa-dropbox mr-1.5"></i>Dropbox & Password
+        </button>
+      </div>
+
+      <!-- SUB-PANEL A: GROUPS & HOUSES (1 Group -> Many Houses) -->
+      <div id="adminPanel-groupsHouses" class="space-y-4">
+        <!-- Add / Edit Group -->
+        <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-3">
+          <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-miv-600"></i> Manage Farm Groups
+          </h3>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="newGroupNameInput"
+              placeholder="New Group Name (e.g. Group D - South Farm)"
+              class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+            <button
+              onclick="adminAddGroup()"
+              class="tap-scale px-4 py-2.5 rounded-xl bg-miv-600 hover:bg-miv-700 text-white text-xs font-extrabold shrink-0"
+            >
+              <i class="fa-solid fa-plus mr-1"></i> Add Group
+            </button>
+          </div>
+          <div id="adminGroupsList" class="space-y-2 pt-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Add / Edit Houses (Every House MUST belong to a Group) -->
+        <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-house-chimney text-miv-600"></i> Manage House Numbers (Assigned to Group)
+            </h3>
+            <span class="text-[11px] font-semibold text-slate-400">1-to-Many Mapping</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <select
+              id="newHouseGroupSelect"
+              class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-miv-500"
+            >
+              <!-- Populated with Groups -->
+            </select>
+            <input
+              type="text"
+              id="newHouseNameInput"
+              placeholder="House Number / Name (e.g. House 7)"
+              class="bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+            <button
+              onclick="adminAddHouse()"
+              class="tap-scale px-4 py-2.5 rounded-xl bg-miv-600 hover:bg-miv-700 text-white text-xs font-extrabold"
+            >
+              <i class="fa-solid fa-plus mr-1"></i> Add House
+            </button>
+          </div>
+          <div id="adminHousesList" class="space-y-2 pt-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-PANEL B: SUPPLIERS -->
+      <div id="adminPanel-suppliers" class="hidden bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-3">
+        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-truck-field text-miv-600"></i> Manage Hatchery & DOC Suppliers
+        </h3>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            id="newSupplierInput"
+            placeholder="Supplier Name (e.g. QL Poultry Breeder)"
+            class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-miv-500"
+          />
+          <button
+            onclick="adminAddSupplier()"
+            class="tap-scale px-4 py-2.5 rounded-xl bg-miv-600 hover:bg-miv-700 text-white text-xs font-extrabold shrink-0"
+          >
+            <i class="fa-solid fa-plus mr-1"></i> Add Supplier
+          </button>
+        </div>
+        <div id="adminSuppliersList" class="space-y-2 pt-1">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- SUB-PANEL C: BIRDS CONDITION & RESULT PILLS -->
+      <div id="adminPanel-conditions" class="hidden bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-3">
+        <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-stethoscope text-miv-600"></i> Manage Birds Condition & Result Pills
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input
+            type="text"
+            id="newConditionLabelInput"
+            placeholder="Condition Label (e.g. Strong Vocalization)"
+            class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-miv-500"
+          />
+          <div class="flex gap-2">
+            <select
+              id="newConditionToneSelect"
+              class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800"
+            >
+              <option value="good">Good (Green/Blue)</option>
+              <option value="warning">Warning (Amber)</option>
+              <option value="alert">Alert (Red)</option>
+            </select>
+            <button
+              onclick="adminAddCondition()"
+              class="tap-scale px-4 py-2.5 rounded-xl bg-miv-600 hover:bg-miv-700 text-white text-xs font-extrabold shrink-0"
+            >
+              <i class="fa-solid fa-plus"></i> Add
+            </button>
+          </div>
+        </div>
+        <div id="adminConditionsList" class="space-y-2 pt-1">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- SUB-PANEL D: DROPBOX CLOUD SYNC & SECURITY PASSWORD -->
+      <div id="adminPanel-cloudSecurity" class="hidden space-y-4">
+        <!-- Quick Button to Open Full Dropbox Sync Config Modal -->
+        <div class="bg-white rounded-3xl shadow-material border border-blue-200 p-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="fa-brands fa-dropbox text-miv-600 text-base"></i> Dropbox Content API v2 Sync
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Configure Permanent Refresh Token, App Key/Secret, and 1-Tap Device Sync Link.</p>
+          </div>
+          <button
+            onclick="openSyncModal()"
+            class="tap-scale px-4 py-2.5 rounded-xl bg-miv-600 hover:bg-miv-700 text-white text-xs font-extrabold shadow"
+          >
+            Open Cloud Sync Config
+          </button>
+        </div>
+
+        <!-- Change Admin & Log Password -->
+        <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-5 space-y-3">
+          <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-key text-miv-600"></i> Security Password (Admin Mode & Log Amend/Delete)
+          </h3>
+          <p class="text-xs text-slate-500">Default password is <code class="bg-slate-100 px-1.5 py-0.5 rounded font-bold">1234</code>. Updating this password syncs across devices via Dropbox.</p>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="adminNewPasswordInput"
+              placeholder="Enter new 4+ character password"
+              class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+            <button
+              onclick="adminUpdatePassword()"
+              class="tap-scale px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-extrabold shrink-0"
+            >
+              Update Password
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== ANDROID BOTTOM NAVIGATION BAR ==================== -->
+  <nav class="no-print fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-nav">
+    <div class="max-w-3xl mx-auto grid grid-cols-4 px-2 py-1.5">
+      <button
+        id="nav-entry"
+        onclick="navigateTab('entry')"
+        class="nav-item tap-scale flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-miv-700 bg-miv-50"
+      >
+        <i class="fa-solid fa-clipboard-check text-lg"></i>
+        <span class="text-[11px] font-extrabold mt-0.5">DOC Input</span>
+      </button>
+
+      <button
+        id="nav-logs"
+        onclick="navigateTab('logs')"
+        class="nav-item tap-scale flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-slate-500 hover:text-miv-600"
+      >
+        <div class="relative">
+          <i class="fa-solid fa-list-check text-lg"></i>
+          <span id="navLogCountBadge" class="hidden absolute -top-1.5 -right-3 bg-miv-600 text-white text-[9px] font-extrabold px-1.5 rounded-full">0</span>
+        </div>
+        <span class="text-[11px] font-bold mt-0.5">My Logs</span>
+      </button>
+
+      <button
+        id="nav-report"
+        onclick="navigateTab('report')"
+        class="nav-item tap-scale flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-slate-500 hover:text-miv-600"
+      >
+        <i class="fa-solid fa-chart-column text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">Report</span>
+      </button>
+
+      <button
+        id="nav-admin"
+        onclick="switchRole('admin')"
+        class="nav-item tap-scale flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-slate-500 hover:text-miv-600"
+      >
+        <i class="fa-solid fa-sliders text-lg"></i>
+        <span class="text-[11px] font-bold mt-0.5">Admin</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ==================== PASSWORD MODAL (ADMIN & LOG AMEND/DELETE) ==================== -->
+  <div id="passwordModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-2xl bg-miv-100 text-miv-700 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <div>
+          <h3 id="passwordModalTitle" class="text-base font-extrabold text-slate-900">Security Verification</h3>
+          <p id="passwordModalSubtitle" class="text-xs text-slate-500">Enter password (default: 1234)</p>
+        </div>
+      </div>
+
+      <div>
+        <input
+          type="password"
+          inputmode="numeric"
+          id="passwordModalInput"
+          placeholder="••••"
+          onkeydown="if(event.key==='Enter') submitPasswordModal()"
+          class="w-full text-center tracking-widest text-xl font-extrabold bg-slate-50 border border-slate-300 rounded-2xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-miv-500"
+        />
+        <p id="passwordModalError" class="hidden text-xs font-bold text-rose-600 mt-1.5 text-center">Incorrect password. Please try again.</p>
+      </div>
+
+      <div class="flex gap-2.5 pt-1">
+        <button
+          type="button"
+          onclick="closePasswordModal()"
+          class="tap-scale flex-1 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onclick="submitPasswordModal()"
+          class="tap-scale flex-1 py-3 rounded-2xl bg-miv-600 hover:bg-miv-700 text-white text-xs font-extrabold shadow"
+        >
+          Unlock
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== AMEND LOG MODAL ==================== -->
+  <div id="amendLogModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-slate-100 space-y-4 my-auto max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-miv-600"></i> Amend DOC Delivery Log
+        </h3>
+        <button onclick="closeAmendModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <input type="hidden" id="amendLogId" />
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Farm Group</label>
+          <select id="amendGroupSelect" onchange="populateAmendHouses()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">House Number</label>
+          <select id="amendHouseSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Delivery Date</label>
+          <input type="date" id="amendDateInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Arrival Time</label>
+          <input type="time" id="amendTimeInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-slate-600 mb-1">Supplier</label>
+          <select id="amendSupplierSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold"></select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Total Birds</label>
+          <input type="number" id="amendTotalBirds" oninput="recalcAmendPreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Dead Birds</label>
+          <input type="number" id="amendDeadBirds" oninput="recalcAmendPreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Cull Birds</label>
+          <input type="number" id="amendCullBirds" oninput="recalcAmendPreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+        </div>
+        <div class="sm:col-span-2 bg-slate-50 border border-slate-200 rounded-xl p-2.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-bold text-slate-700">5 Basket Gross ("Bakul Weight") in Kg</label>
+            <span class="text-[11px] font-extrabold text-miv-700">Total: <span id="amendTotalBakulPreview">0.00</span> Kg</span>
+          </div>
+          <div class="grid grid-cols-5 gap-1.5">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-0.5">B1</label>
+              <input type="number" step="0.01" id="amendBakul1" oninput="recalcAmendPreview()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-0.5">B2</label>
+              <input type="number" step="0.01" id="amendBakul2" oninput="recalcAmendPreview()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-0.5">B3</label>
+              <input type="number" step="0.01" id="amendBakul3" oninput="recalcAmendPreview()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-0.5">B4</label>
+              <input type="number" step="0.01" id="amendBakul4" oninput="recalcAmendPreview()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 mb-0.5">B5</label>
+              <input type="number" step="0.01" id="amendBakul5" oninput="recalcAmendPreview()" class="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs font-bold" />
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 mb-1">Empty Bakul (Kg)</label>
+          <input type="number" step="0.01" id="amendEmptyBakul" oninput="recalcAmendPreview()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold" />
+        </div>
+        <div class="bg-miv-50 border border-miv-200 rounded-xl p-2.5 flex flex-col justify-center">
+          <span class="text-[10px] font-bold text-miv-700 uppercase">Recalculated Avg Weight</span>
+          <span id="amendAvgWeightPreview" class="text-base font-extrabold text-miv-800">0.00 g</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-600 mb-1.5">Birds Condition Pills</label>
+        <div id="amendConditionPills" class="flex flex-wrap gap-1.5"></div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-600 mb-1">Remarks</label>
+        <input type="text" id="amendRemarksInput" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold" />
+      </div>
+
+      <div class="flex gap-2.5 pt-2">
+        <button onclick="closeAmendModal()" class="tap-scale flex-1 py-3 rounded-2xl bg-slate-100 text-slate-700 text-xs font-extrabold">Cancel</button>
+        <button onclick="saveAmendedLog()" class="tap-scale flex-1 py-3 rounded-2xl bg-miv-600 text-white text-xs font-extrabold shadow">Save & Sync Cloud</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DROPBOX CONTENT API v2 SYNC MODAL ==================== -->
+  <div id="syncModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl border border-blue-100 space-y-4 my-auto max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-2xl bg-miv-100 text-miv-700 flex items-center justify-center text-lg">
+            <i class="fa-brands fa-dropbox"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900">Dropbox Cloud Sync (API v2)</h3>
+            <p class="text-[11px] text-slate-500">Target Path: <code class="font-bold text-miv-700">/data/miv_doc_database.json</code></p>
+          </div>
+        </div>
+        <button onclick="closeSyncModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Status Banner -->
+      <div id="syncModalStatusBox" class="p-3 rounded-2xl bg-miv-50 border border-miv-200 text-xs text-miv-900 flex items-center justify-between">
+        <div>
+          <p class="font-extrabold" id="syncModalHeadline">Ready for Cloud Connection</p>
+          <p class="text-[11px] text-miv-700 mt-0.5" id="syncModalSubtext">Background multi-device polling runs every 15s when configured.</p>
+        </div>
+        <span id="syncModalBadge" class="px-2.5 py-1 rounded-full bg-white text-miv-700 font-extrabold text-[10px] border border-miv-200">IDLE</span>
+      </div>
+
+      <!-- SECTION 1: Permanent Refresh Token (Recommended • Never Expires) -->
+      <div class="bg-blue-50/60 border border-blue-200 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-miv-900">Permanent Refresh Token</span>
+          <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-extrabold">Recommended • Never Expires</span>
+        </div>
+        <p class="text-[11px] text-slate-600">Supports both PKCE (App Key + Refresh Token) and Standard OAuth2 (with App Secret).</p>
+
+        <div class="space-y-2.5">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Refresh Token</label>
+            <input
+              type="password"
+              id="dbxRefreshToken"
+              placeholder="Paste Dropbox OAuth2 Refresh Token..."
+              class="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-miv-500"
+            />
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">App Key</label>
+              <input
+                type="text"
+                id="dbxAppKey"
+                placeholder="Dropbox App Key"
+                class="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-miv-500"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-700 mb-1">App Secret <span class="text-slate-400 font-normal">(Optional for PKCE)</span></label>
+              <input
+                type="password"
+                id="dbxAppSecret"
+                placeholder="Optional App Secret"
+                class="w-full bg-white border border-blue-200 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-miv-500"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECTION 2: Direct Access Token (Optional Fallback) -->
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-slate-800">Direct Access Token</span>
+          <span class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-bold">Optional Fallback</span>
+        </div>
+        <input
+          type="password"
+          id="dbxAccessToken"
+          placeholder="sl.B... (Short-lived token if not using Refresh Token)"
+          class="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-miv-500"
+        />
+      </div>
+
+      <!-- SECTION 3: 1-Tap New Device Sync Link -->
+      <div class="bg-indigo-50/70 border border-indigo-200 rounded-2xl p-4 space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-indigo-950 flex items-center gap-1.5">
+            <i class="fa-solid fa-mobile-screen-button text-indigo-600"></i> 1-Tap New Device Sync Link
+          </span>
+          <span class="text-[10px] font-bold text-indigo-700">Auto-Hydrates Device</span>
+        </div>
+        <p class="text-[11px] text-slate-600">Generates an encrypted-hash URL containing your Dropbox credentials to onboard another phone/tablet in 1 tap.</p>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            id="deviceSyncLinkOutput"
+            readonly
+            placeholder="Save credentials first to generate sync link..."
+            class="flex-1 bg-white border border-indigo-200 rounded-xl px-3 py-2 text-[11px] font-mono text-slate-600"
+          />
+          <button
+            type="button"
+            onclick="copyDeviceSyncLink()"
+            class="tap-scale px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shrink-0"
+          >
+            <i class="fa-solid fa-copy mr-1"></i> Copy Sync Link
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+        <button
+          type="button"
+          onclick="saveDropboxConfigAndSync()"
+          class="col-span-2 sm:col-span-1 tap-scale py-3 px-3 rounded-2xl bg-miv-600 hover:bg-miv-700 text-white text-xs font-extrabold shadow"
+        >
+          <i class="fa-solid fa-floppy-disk mr-1"></i> Save & Connect
+        </button>
+        <button
+          type="button"
+          onclick="forceCloudSync(false)"
+          class="tap-scale py-3 px-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold"
+        >
+          <i class="fa-solid fa-arrows-rotate mr-1"></i> Force Sync Now
+        </button>
+        <button
+          type="button"
+          onclick="forceCloudSync(true)"
+          class="tap-scale py-3 px-3 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-extrabold"
+        >
+          <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Push Local
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SUBMISSION SUCCESS & WHATSAPP SHARE MODAL ==================== -->
+  <div id="submitSuccessModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-emerald-100 space-y-4">
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl mx-auto shadow-inner">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3 class="text-lg font-extrabold text-slate-900">DOC Delivery Recorded!</h3>
+        <p class="text-xs text-slate-500">Saved locally & queued for Dropbox cloud sync.</p>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 max-h-56 overflow-y-auto">
+        <pre id="whatsappPreviewText" class="text-xs font-mono text-slate-700 whitespace-pre-wrap leading-relaxed"></pre>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <button
+          type="button"
+          id="modalWhatsAppBtn"
+          class="tap-scale flex-1 py-3.5 px-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow"
+        >
+          <i class="fa-brands fa-whatsapp text-base"></i> Open WhatsApp Now
+        </button>
+        <button
+          type="button"
+          onclick="copyLastReportText()"
+          class="tap-scale py-3.5 px-4 rounded-2xl bg-miv-50 hover:bg-miv-100 text-miv-700 text-xs font-extrabold"
+        >
+          <i class="fa-solid fa-copy mr-1"></i> Copy Text
+        </button>
+        <button
+          type="button"
+          onclick="closeSubmitSuccessModal()"
+          class="tap-scale py-3.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="toastBanner" class="hidden fixed top-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-slate-900/95 text-white text-xs font-bold shadow-xl flex items-center gap-2 max-w-[92vw]">
+    <i id="toastIcon" class="fa-solid fa-circle-info text-blue-400"></i>
+    <span id="toastMessage">Notification</span>
+  </div>
+
+  <!-- ==================== APPLICATION LOGIC ==================== -->
+  <script>
+    /**
+     * =========================================================================
+     * MIV DOC DELIVERY — STATE MANAGEMENT, DROPBOX API v2 SYNC & CALCULATIONS
+     * =========================================================================
+     */
+
+    const STORAGE_DB_KEY = 'miv_doc_delivery_db_v1';
+    const STORAGE_DBX_KEY = 'miv_doc_dropbox_creds_v1';
+    const DROPBOX_FILE_PATH = '/data/miv_doc_database.json';
+
+    // Default seeded master data (used only if both localStorage and Dropbox are empty)
+    function createDefaultDatabase() {
+      const now = new Date().toISOString();
+      return {
+        meta: {
+          appName: 'MIV DOC Delivery',
+          version: 1,
+          updatedAt: now,
+          adminPassword: '1234'
+        },
+        groups: [
+          { id: 'grp_a', name: 'Group A (North Zone)', updatedAt: now },
+          { id: 'grp_b', name: 'Group B (Central Zone)', updatedAt: now },
+          { id: 'grp_c', name: 'Group C (South Zone)', updatedAt: now }
+        ],
+        houses: [
+          { id: 'h_1', groupId: 'grp_a', name: 'House 1', updatedAt: now },
+          { id: 'h_2', groupId: 'grp_a', name: 'House 2', updatedAt: now },
+          { id: 'h_3', groupId: 'grp_b', name: 'House 3', updatedAt: now },
+          { id: 'h_4', groupId: 'grp_b', name: 'House 4', updatedAt: now },
+          { id: 'h_5', groupId: 'grp_c', name: 'House 5', updatedAt: now },
+          { id: 'h_6', groupId: 'grp_c', name: 'House 6', updatedAt: now }
+        ],
+        suppliers: [
+          { id: 'sup_1', name: 'Leong Hup Hatchery', updatedAt: now },
+          { id: 'sup_2', name: 'CP Malaysia', updatedAt: now },
+          { id: 'sup_3', name: 'Huat Lai Resources', updatedAt: now },
+          { id: 'sup_4', name: 'Ayamas Breeder', updatedAt: now }
+        ],
+        conditions: [
+          { id: 'cond_1', label: 'Active & Alert', tone: 'good', updatedAt: now },
+          { id: 'cond_2', label: 'Uniform Size', tone: 'good', updatedAt: now },
+          { id: 'cond_3', label: 'Good Navel Healing', tone: 'good', updatedAt: now },
+          { id: 'cond_4', label: 'Weak / Dehydrated', tone: 'warning', updatedAt: now },
+          { id: 'cond_5', label: 'Wet / Chilled', tone: 'warning', updatedAt: now },
+          { id: 'cond_6', label: 'Leg / Hocks Issue', tone: 'alert', updatedAt: now }
+        ],
+        deletedIds: [],
+        logs: []
+      };
+    }
+
+    // Runtime Application State
+    let appDb = createDefaultDatabase();
+    let dbxCreds = {
+      refreshToken: '',
+      appKey: '',
+      appSecret: '',
+      accessToken: '',
+      accessTokenExpiresAt: 0
+    };
+
+    let currentRole = 'user'; // 'user' | 'admin'
+    let currentTab = 'entry'; // 'entry' | 'logs' | 'report' | 'admin'
+    let sessionUnlocked = false; // Unlocks Admin Mode & Log Amend/Delete for session
+    let pendingPasswordCallback = null;
+
+    // Form Selection State
+    let selectedGroupId = '';
+    let selectedHouseId = '';
+    let selectedSupplierId = '';
+    let selectedConditionIds = [];
+    let lastGeneratedWhatsAppText = '';
+    let isSyncing = false;
+    let pollIntervalHandle = null;
+
+    /**
+     * -------------------------------------------------------------------------
+     * BOOT INITIALIZATION & 1-TAP DEVICE SYNC HASH PARSING
+     * -------------------------------------------------------------------------
+     */
+    window.addEventListener('DOMContentLoaded', async () => {
+      // 1. Parse #sync=... hash if present (1-Tap New Device Sync Link)
+      const hydratedFromLink = parseSyncHashFromUrl();
+
+      // 2. Load local credentials & database
+      loadDropboxCredentials();
+      loadLocalDatabase();
+
+      // 3. Initialize auto-date (today) and keep time strictly empty
+      initEntryFormDefaults();
+
+      // 4. Render initial UI
+      renderAllUI();
+
+      // 5. Automatic Cloud Hydration on Boot if Dropbox is configured
+      if (hasDropboxCredentials()) {
+        updateSyncBadge('syncing', 'Syncing...');
+        await forceCloudSync(false, hydratedFromLink);
+      } else {
+        updateSyncBadge('offline', 'Local Only');
+      }
+
+      // 6. Start non-destructive background polling every 15 seconds
+      startBackgroundSyncPolling();
+    });
+
+    function parseSyncHashFromUrl() {
+      try {
+        const hash = window.location.hash || '';
+        if (hash.startsWith('#sync=')) {
+          const encoded = hash.slice(6);
+          const jsonStr = decodeURIComponent(escape(atob(encoded)));
+          const parsed = JSON.parse(jsonStr);
+          if (parsed && (parsed.refreshToken || parsed.accessToken)) {
+            dbxCreds = {
+              refreshToken: parsed.refreshToken || '',
+              appKey: parsed.appKey || '',
+              appSecret: parsed.appSecret || '',
+              accessToken: parsed.accessToken || '',
+              accessTokenExpiresAt: 0
+            };
+            localStorage.setItem(STORAGE_DBX_KEY, JSON.stringify(dbxCreds));
+            // Clean URL hash without reloading
+            history.replaceState(null, document.title, window.location.pathname + window.location.search);
+            showToast('1-Tap Sync Link applied! Connecting to Dropbox...', 'success');
+            return true;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to parse #sync link:', err);
+      }
+      return false;
+    }
+
+    function loadDropboxCredentials() {
+      try {
+        const raw = localStorage.getItem(STORAGE_DBX_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          dbxCreds = { ...dbxCreds, ...parsed };
+        }
+      } catch (e) {
+        console.error('Error loading Dropbox credentials:', e);
+      }
+    }
+
+    function saveDropboxCredentials() {
+      localStorage.setItem(STORAGE_DBX_KEY, JSON.stringify(dbxCreds));
+    }
+
+    function hasDropboxCredentials() {
+      return Boolean((dbxCreds.refreshToken && dbxCreds.appKey) || dbxCreds.accessToken);
+    }
+
+    function loadLocalDatabase() {
+      try {
+        const raw = localStorage.getItem(STORAGE_DB_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.groups && parsed.houses) {
+            appDb = {
+              ...createDefaultDatabase(),
+              ...parsed,
+              meta: { ...createDefaultDatabase().meta, ...(parsed.meta || {}) },
+              deletedIds: Array.isArray(parsed.deletedIds) ? parsed.deletedIds : [],
+              logs: Array.isArray(parsed.logs) ? parsed.logs : []
+            };
+          }
+        } else {
+          saveLocalDatabase();
+        }
+      } catch (e) {
+        console.error('Error loading local database:', e);
+      }
+    }
+
+    function saveLocalDatabase() {
+      appDb.meta.updatedAt = new Date().toISOString();
+      localStorage.setItem(STORAGE_DB_KEY, JSON.stringify(appDb));
+      updateLogCountBadge();
+    }
+
+    /**
+     * -------------------------------------------------------------------------
+     * DROPBOX CONTENT API v2 INTEGRATION (PKCE + CLIENT_SECRET + MERGE POLLING)
+     * -------------------------------------------------------------------------
+     */
+    async function getValidDropboxAccessToken() {
+      // If refreshToken + appKey are available, refresh when expired or missing
+      if (dbxCreds.refreshToken && dbxCreds.appKey) {
+        const now = Date.now();
+        if (dbxCreds.accessToken && dbxCreds.accessTokenExpiresAt > now + 60000) {
+          return dbxCreds.accessToken;
+        }
+
+        const params = new URLSearchParams();
+        params.append('grant_type', 'refresh_token');
+        params.append('refresh_token', dbxCreds.refreshToken.trim());
+        params.append('client_id', dbxCreds.appKey.trim());
+        // Support both PKCE (no client_secret) and standard OAuth2 (with client_secret)
+        if (dbxCreds.appSecret && dbxCreds.appSecret.trim() !== '') {
+          params.append('client_secret', dbxCreds.appSecret.trim());
+        }
+
+        const resp = await fetch('https://api.dropbox.com/oauth2/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params.toString()
+        });
+
+        if (!resp.ok) {
+          const errText = await resp.text();
+          throw new Error(`OAuth2 Refresh Failed (${resp.status}): ${errText}`);
+        }
+
+        const data = await resp.json();
+        dbxCreds.accessToken = data.access_token;
+        dbxCreds.accessTokenExpiresAt = Date.now() + ((data.expires_in || 14400) * 1000);
+        saveDropboxCredentials();
+        return dbxCreds.accessToken;
+      }
+
+      // Fallback to Direct Access Token
+      if (dbxCreds.accessToken && dbxCreds.accessToken.trim() !== '') {
+        return dbxCreds.accessToken.trim();
+      }
+
+      throw new Error('No Dropbox credentials configured.');
+    }
+
+    async function downloadDropboxDatabase(token) {
+      const resp = await fetch('https://content.dropboxapi.com/2/files/download', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Dropbox-API-Arg': JSON.stringify({ path: DROPBOX_FILE_PATH })
+        }
+      });
+
+      if (resp.status === 409) {
+        // File does not exist yet on Dropbox (path/not_found)
+        return null;
+      }
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`Download failed (${resp.status}): ${errText}`);
+      }
+
+      return await resp.json();
+    }
+
+    async function uploadDropboxDatabase(token, payloadObj) {
+      const resp = await fetch('https://content.dropboxapi.com/2/files/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/octet-stream',
+          'Dropbox-API-Arg': JSON.stringify({
+            path: DROPBOX_FILE_PATH,
+            mode: 'overwrite',
+            autorename: false,
+            mute: true
+          })
+        },
+        body: JSON.stringify(payloadObj, null, 2)
+      });
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`Upload failed (${resp.status}): ${errText}`);
+      }
+
+      return await resp.json();
+    }
+
+    /**
+     * Non-destructive multi-device merge by ID & updatedAt timestamp
+     */
+    function mergeDatabases(localDb, remoteDb) {
+      if (!remoteDb || typeof remoteDb !== 'object') return localDb;
+
+      const deletedSet = new Set([
+        ...(Array.isArray(localDb.deletedIds) ? localDb.deletedIds : []),
+        ...(Array.isArray(remoteDb.deletedIds) ? remoteDb.deletedIds : [])
+      ]);
+
+      function mergeCollection(localArr = [], remoteArr = []) {
+        const map = new Map();
+        [...remoteArr, ...localArr].forEach(item => {
+          if (!item || !item.id || deletedSet.has(item.id)) return;
+          const existing = map.get(item.id);
+          if (!existing) {
+            map.set(item.id, item);
+          } else {
+            const tNew = new Date(item.updatedAt || 0).getTime();
+            const tOld = new Date(existing.updatedAt || 0).getTime();
+            if (tNew >= tOld) {
+              map.set(item.id, item);
+            }
+          }
+        });
+        return Array.from(map.values());
+      }
+
+      const mergedGroups = mergeCollection(localDb.groups, remoteDb.groups);
+      const mergedHouses = mergeCollection(localDb.houses, remoteDb.houses);
+      const mergedSuppliers = mergeCollection(localDb.suppliers, remoteDb.suppliers);
+      const mergedConditions = mergeCollection(localDb.conditions, remoteDb.conditions);
+      const mergedLogs = mergeCollection(localDb.logs, remoteDb.logs)
+        .sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+
+      const localMetaTime = new Date(localDb.meta?.updatedAt || 0).getTime();
+      const remoteMetaTime = new Date(remoteDb.meta?.updatedAt || 0).getTime();
+      const mergedPassword = remoteMetaTime > localMetaTime
+        ? (remoteDb.meta?.adminPassword || localDb.meta?.adminPassword || '1234')
+        : (localDb.meta?.adminPassword || remoteDb.meta?.adminPassword || '1234');
+
+      return {
+        meta: {
+          appName: 'MIV DOC Delivery',
+          version: 1,
+          updatedAt: new Date().toISOString(),
+          adminPassword: mergedPassword
+        },
+        groups: mergedGroups.length ? mergedGroups : localDb.groups,
+        houses: mergedHouses.length ? mergedHouses : localDb.houses,
+        suppliers: mergedSuppliers.length ? mergedSuppliers : localDb.suppliers,
+        conditions: mergedConditions.length ? mergedConditions : localDb.conditions,
+        deletedIds: Array.from(deletedSet).slice(-300),
+        logs: mergedLogs
+      };
+    }
+
+    async function forceCloudSync(pushLocalOnly = false, preferRemoteOnFirstBoot = false) {
+      if (!hasDropboxCredentials()) {
+        updateSyncBadge('offline', 'Local Only');
+        return;
+      }
+      if (isSyncing) return;
+
+      isSyncing = true;
+      updateSyncBadge('syncing', 'Syncing...');
+      updateSyncModalStatus('Synchronizing with Dropbox...', 'Connecting to /data/miv_doc_database.json', 'SYNCING');
+
+      try {
+        const token = await getValidDropboxAccessToken();
+        const remoteDb = await downloadDropboxDatabase(token);
+
+        if (remoteDb && !pushLocalOnly) {
+          if (preferRemoteOnFirstBoot && appDb.logs.length === 0) {
+            appDb = {
+              ...createDefaultDatabase(),
+              ...remoteDb,
+              meta: { ...createDefaultDatabase().meta, ...(remoteDb.meta || {}) }
+            };
+          } else {
+            appDb = mergeDatabases(appDb, remoteDb);
+          }
+          localStorage.setItem(STORAGE_DB_KEY, JSON.stringify(appDb));
+        }
+
+        // Upload merged state back to Dropbox
+        await uploadDropboxDatabase(token, appDb);
+
+        const timeLabel = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        updateSyncBadge('synced', `Synced ${timeLabel}`);
+        updateSyncModalStatus('Cloud Synced & Up to Date', `Last synced at ${timeLabel} • /data/miv_doc_database.json`, 'SYNCED');
+        renderAllUI();
+      } catch (err) {
+        console.error('Dropbox Sync Error:', err);
+        updateSyncBadge('error', 'Sync Error');
+        updateSyncModalStatus('Sync Connection Issue', err.message || 'Check Refresh Token / App Key', 'ERROR');
+      } finally {
+        isSyncing = false;
+      }
+    }
+
+    function startBackgroundSyncPolling() {
+      if (pollIntervalHandle) clearInterval(pollIntervalHandle);
+      pollIntervalHandle = setInterval(() => {
+        // Non-destructive poll every 15s when configured and user isn't mid-edit in modal
+        const amendOpen = !document.getElementById('amendLogModal').classList.contains('hidden');
+        if (hasDropboxCredentials() && !isSyncing && !amendOpen) {
+          forceCloudSync(false, false);
+        }
+      }, 15000);
+    }
+
+    function updateSyncBadge(state, text) {
+      const dot = document.getElementById('syncStatusDot');
+      const label = document.getElementById('syncStatusText');
+      label.textContent = text;
+      dot.className = 'w-2.5 h-2.5 rounded-full ';
+      if (state === 'synced') dot.className += 'bg-emerald-400 shadow-[0_0_8px_#34D399]';
+      else if (state === 'syncing') dot.className += 'bg-sky-300 animate-ping';
+      else if (state === 'error') dot.className += 'bg-rose-400';
+      else dot.className += 'bg-amber-300';
+    }
+
+    function updateSyncModalStatus(headline, subtext, badge) {
+      const h = document.getElementById('syncModalHeadline');
+      const s = document.getElementById('syncModalSubtext');
+      const b = document.getElementById('syncModalBadge');
+      if (h) h.textContent = headline;
+      if (s) s.textContent = subtext;
+      if (b) b.textContent = badge;
+    }
+
+    function openSyncModal() {
+      document.getElementById('dbxRefreshToken').value = dbxCreds.refreshToken || '';
+      document.getElementById('dbxAppKey').value = dbxCreds.appKey || '';
+      document.getElementById('dbxAppSecret').value = dbxCreds.appSecret || '';
+      document.getElementById('dbxAccessToken').value = dbxCreds.accessToken || '';
+      refreshDeviceSyncLinkInput();
+      document.getElementById('syncModal').classList.remove('hidden');
+    }
+
+    function closeSyncModal() {
+      document.getElementById('syncModal').classList.add('hidden');
+    }
+
+    function refreshDeviceSyncLinkInput() {
+      const out = document.getElementById('deviceSyncLinkOutput');
+      if (!hasDropboxCredentials()) {
+        out.value = '';
+        return;
+      }
+      const payload = {
+        refreshToken: dbxCreds.refreshToken || '',
+        appKey: dbxCreds.appKey || '',
+        appSecret: dbxCreds.appSecret || '',
+        accessToken: dbxCreds.accessToken || ''
+      };
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      const baseUrl = window.location.origin + window.location.pathname;
+      out.value = `${baseUrl}#sync=${encoded}`;
+    }
+
+    async function saveDropboxConfigAndSync() {
+      dbxCreds.refreshToken = document.getElementById('dbxRefreshToken').value.trim();
+      dbxCreds.appKey = document.getElementById('dbxAppKey').value.trim();
+      dbxCreds.appSecret = document.getElementById('dbxAppSecret').value.trim();
+      dbxCreds.accessToken = document.getElementById('dbxAccessToken').value.trim();
+      dbxCreds.accessTokenExpiresAt = 0;
+
+      saveDropboxCredentials();
+      refreshDeviceSyncLinkInput();
+      showToast('Dropbox credentials saved. Syncing...', 'info');
+      await forceCloudSync(false, false);
+    }
+
+    function copyDeviceSyncLink() {
+      refreshDeviceSyncLinkInput();
+      const input = document.getElementById('deviceSyncLinkOutput');
+      if (!input.value) {
+        showToast('Save Dropbox credentials first to generate a link.', 'warning');
+        return;
+      }
+      input.select();
+      input.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+      showToast('1-Tap Device Sync Link copied to clipboard!', 'success');
+    }
+
+    /**
+     * -------------------------------------------------------------------------
+     * ROLE SWITCHING, NAVIGATION & PASSWORD SECURITY
+     * -------------------------------------------------------------------------
+     */
+    function switchRole(targetRole) {
+      if (targetRole === 'admin') {
+        if (sessionUnlocked) {
+          activateAdminRole();
+        } else {
+          requestPassword('Admin Mode Access', 'Enter Admin Password (default: 1234)', () => {
+            sessionUnlocked = true;
+            activateAdminRole();
+          });
+        }
+      } else {
+        currentRole = 'user';
+        updateRoleHeaderUI();
+        navigateTab('entry');
+      }
+    }
+
+    function activateAdminRole() {
+      currentRole = 'admin';
+      updateRoleHeaderUI();
+      navigateTab('admin');
+      showToast('Admin Mode unlocked', 'success');
+    }
+
+    function lockAdminAndExit() {
+      sessionUnlocked = false;
+      currentRole = 'user';
+      updateRoleHeaderUI();
+      navigateTab('entry');
+      showToast('Admin Mode locked', 'info');
+    }
+
+    function updateRoleHeaderUI() {
+      const userBtn = document.getElementById('roleUserBtn');
+      const adminBtn = document.getElementById('roleAdminBtn');
+      const lockIcon = document.getElementById('adminLockIcon');
+      const logSessionBadge = document.getElementById('logSessionBadge');
+
+      if (currentRole === 'admin') {
+        adminBtn.className = 'tap-scale flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all bg-white text-miv-700 shadow';
+        userBtn.className = 'tap-scale flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all text-blue-100 hover:text-white';
+      } else {
+        userBtn.className = 'tap-scale flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all bg-white text-miv-700 shadow';
+        adminBtn.className = 'tap-scale flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all text-blue-100 hover:text-white';
+      }
+
+      if (sessionUnlocked) {
+        lockIcon.className = 'fa-solid fa-lock-open text-xs text-emerald-500';
+        logSessionBadge.innerHTML = '<i class="fa-solid fa-lock-open text-emerald-600"></i> Edit Unlocked';
+        logSessionBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+      } else {
+        lockIcon.className = 'fa-solid fa-lock text-xs';
+        logSessionBadge.innerHTML = '<i class="fa-solid fa-lock"></i> Edit Locked';
+        logSessionBadge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600';
+      }
+    }
+
+    function navigateTab(tabName) {
+      if (tabName === 'admin' && !sessionUnlocked) {
+        switchRole('admin');
+        return;
+      }
+
+      currentTab = tabName;
+      ['entry', 'logs', 'report', 'admin'].forEach(t => {
+        const el = document.getElementById(`view-${t}`);
+        if (el) el.classList.toggle('hidden', t !== tabName);
+
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (navBtn) {
+          if (t === tabName) {
+            navBtn.className = 'nav-item tap-scale flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-miv-700 bg-miv-50';
+          } else {
+            navBtn.className = 'nav-item tap-scale flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl text-slate-500 hover:text-miv-600';
+          }
+        }
+      });
+
+      if (tabName === 'logs') renderLogs();
+      if (tabName === 'report') renderExecutiveReport();
+      if (tabName === 'admin') renderAdminPanels();
+    }
+
+    function requestPassword(title, subtitle, onSuccess) {
+      pendingPasswordCallback = onSuccess;
+      document.getElementById('passwordModalTitle').textContent = title;
+      document.getElementById('passwordModalSubtitle').textContent = subtitle;
+      const input = document.getElementById('passwordModalInput');
+      input.value = '';
+      document.getElementById('passwordModalError').classList.add('hidden');
+      document.getElementById('passwordModal').classList.remove('hidden');
+      setTimeout(() => input.focus(), 100);
+    }
+
+    function closePasswordModal() {
+      document.getElementById('passwordModal').classList.add('hidden');
+      pendingPasswordCallback = null;
+    }
+
+    function submitPasswordModal() {
+      const entered = document.getElementById('passwordModalInput').value;
+      const validPassword = appDb.meta?.adminPassword || '1234';
+      if (entered === validPassword) {
+        const cb = pendingPasswordCallback;
+        closePasswordModal();
+        updateRoleHeaderUI();
+        if (typeof cb === 'function') cb();
+      } else {
+        document.getElementById('passwordModalError').classList.remove('hidden');
+        document.getElementById('passwordModalInput').select();
+      }
+    }
+
+    /**
+     * -------------------------------------------------------------------------
+     * USER DAILY INPUT FORM (JOTFORM STYLE + EXACT AVERAGE WEIGHT FORMULA)
+     * -------------------------------------------------------------------------
+     */
+    function getTodayISO() {
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    function initEntryFormDefaults() {
+      document.getElementById('entryDate').value = getTodayISO();
+      // STRICT REQUIREMENT: Time must start empty / unselected (DO NOT auto-fill)
+      document.getElementById('entryTime').value = '';
+      if (!selectedGroupId && appDb.groups.length > 0) {
+        selectedGroupId = appDb.groups[0].id;
+      }
+      onTimeChanged();
+      recalculateMetrics();
+    }
+
+    function resetEntryForm(showFeedback = false) {
+      selectedHouseId = '';
+      selectedSupplierId = '';
+      selectedConditionIds = [];
+      document.getElementById('entryDate').value = getTodayISO();
+      document.getElementById('entryTime').value = '';
+      document.getElementById('entryTotalBirds').value = '';
+      document.getElementById('entryDeadBirds').value = '';
+      document.getElementById('entryCullBirds').value = '';
+      for (let i = 1; i <= 5; i++) {
+        document.getElementById(`entryBakul${i}`).value = '';
+      }
+      document.getElementById('entryEmptyBakul').value = '';
+      document.getElementById('entryRemarks').value = '';
+
+      renderEntryPills();
+      onTimeChanged();
+      recalculateMetrics();
+      if (showFeedback) showToast('Form cleared for next delivery', 'info');
+    }
+
+    function renderEntryPills() {
+      // Group Pills
+      const groupWrap = document.getElementById('entryGroupPills');
+      groupWrap.innerHTML = appDb.groups.map(g => {
+        const active = g.id === selectedGroupId;
+        return `
+          <button
+            type="button"
+            onclick="selectEntryGroup('${g.id}')"
+            class="tap-scale px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold border transition-all ${
+              active
+                ? 'bg-miv-600 text-white border-miv-600 shadow-sm'
+                : 'bg-slate-50 hover:bg-blue-50 text-slate-700 border-slate-200'
+            }"
+          >
+            ${escapeHtml(g.name)}
+          </button>
+        `;
+      }).join('');
+
+      const activeGroup = appDb.groups.find(g => g.id === selectedGroupId);
+      document.getElementById('selectedGroupBadge').textContent = activeGroup ? activeGroup.name : 'Required';
+
+      // House Pills (filtered by selected Group)
+      const houseWrap = document.getElementById('entryHousePills');
+      const filteredHouses = appDb.houses.filter(h => h.groupId === selectedGroupId);
+      if (filteredHouses.length === 0) {
+        houseWrap.innerHTML = `<p class="text-xs text-slate-400 italic">No houses assigned to this group yet.</p>`;
+        document.getElementById('houseFilterHint').textContent = '0 houses';
+      } else {
+        document.getElementById('houseFilterHint').textContent = `${filteredHouses.length} house(s) in group`;
+        houseWrap.innerHTML = filteredHouses.map(h => {
+          const active = h.id === selectedHouseId;
+          return `
+            <button
+              type="button"
+              onclick="selectEntryHouse('${h.id}')"
+              class="tap-scale px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold border transition-all ${
+                active
+                  ? 'bg-miv-600 text-white border-miv-600 shadow-sm'
+                  : 'bg-slate-50 hover:bg-blue-50 text-slate-700 border-slate-200'
+              }"
+            >
+              <i class="fa-solid fa-house-chimney mr-1.5 text-[11px] opacity-80"></i>${escapeHtml(h.name)}
+            </button>
+          `;
+        }).join('');
+      }
+
+      // Supplier Pills
+      const supplierWrap = document.getElementById('entrySupplierPills');
+      supplierWrap.innerHTML = appDb.suppliers.map(s => {
+        const active = s.id === selectedSupplierId;
+        return `
+          <button
+            type="button"
+            onclick="selectEntrySupplier('${s.id}')"
+            class="tap-scale px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-extrabold border transition-all ${
+              active
+                ? 'bg-miv-600 text-white border-miv-600 shadow-sm'
+                : 'bg-slate-50 hover:bg-blue-50 text-slate-700 border-slate-200'
+            }"
+          >
+            ${escapeHtml(s.name)}
+          </button>
+        `;
+      }).join('');
+      const activeSup = appDb.suppliers.find(s => s.id === selectedSupplierId);
+      document.getElementById('selectedSupplierBadge').textContent = activeSup ? activeSup.name : 'Tap to choose';
+
+      // Condition Pills (Multi-select)
+      const condWrap = document.getElementById('entryConditionPills');
+      condWrap.innerHTML = appDb.conditions.map(c => {
+        const active = selectedConditionIds.includes(c.id);
+        let activeClass = 'bg-miv-600 text-white border-miv-600 shadow-sm';
+        if (active && c.tone === 'good') activeClass = 'bg-emerald-600 text-white border-emerald-600 shadow-sm';
+        if (active && c.tone === 'warning') activeClass = 'bg-amber-500 text-white border-amber-500 shadow-sm';
+        if (active && c.tone === 'alert') activeClass = 'bg-rose-600 text-white border-rose-600 shadow-sm';
+
+        return `
+          <button
+            type="button"
+            onclick="toggleEntryCondition('${c.id}')"
+            class="tap-scale px-3.5 py-2 rounded-2xl text-xs font-extrabold border transition-all flex items-center gap-1.5 ${
+              active ? activeClass : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+            }"
+          >
+            <i class="fa-solid ${active ? 'fa-circle-check' : 'fa-circle'} text-[11px] opacity-80"></i>
+            <span>${escapeHtml(c.label)}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectEntryGroup(groupId) {
+      selectedGroupId = groupId;
+      // Clear selected house if it does not belong to the newly chosen group
+      const houseValid = appDb.houses.some(h => h.id === selectedHouseId && h.groupId === groupId);
+      if (!houseValid) selectedHouseId = '';
+      renderEntryPills();
+      validateEntryForm();
+    }
+
+    function selectEntryHouse(houseId) {
+      selectedHouseId = houseId;
+      renderEntryPills();
+      validateEntryForm();
+    }
+
+    function selectEntrySupplier(supplierId) {
+      selectedSupplierId = supplierId;
+      renderEntryPills();
+      validateEntryForm();
+    }
+
+    function toggleEntryCondition(condId) {
+      if (selectedConditionIds.includes(condId)) {
+        selectedConditionIds = selectedConditionIds.filter(id => id !== condId);
+      } else {
+        selectedConditionIds.push(condId);
+      }
+      renderEntryPills();
+    }
+
+    function onTimeChanged() {
+      const timeVal = document.getElementById('entryTime').value;
+      const card = document.getElementById('timeInputCard');
+      const tag = document.getElementById('timeStatusTag');
+      const helper = document.getElementById('timeHelperText');
+
+      if (timeVal) {
+        card.className = 'bg-emerald-50/70 border-2 border-emerald-400 rounded-2xl p-3.5 transition-colors';
+        tag.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900';
+        tag.textContent = 'Time Selected';
+        helper.className = 'text-[11px] font-semibold text-emerald-800 mt-1.5 flex items-center gap-1';
+        helper.innerHTML = `<i class="fa-solid fa-check-circle"></i> Arrival time set to ${formatTime12h(timeVal)}`;
+      } else {
+        card.className = 'bg-amber-50/80 border-2 border-amber-300 rounded-2xl p-3.5 transition-colors';
+        tag.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900';
+        tag.textContent = 'Manual Required';
+        helper.className = 'text-[11px] font-semibold text-amber-800 mt-1.5 flex items-center gap-1';
+        helper.innerHTML = `<i class="fa-solid fa-clock"></i> Select arrival/delivery time to unlock Submit`;
+      }
+      validateEntryForm();
+    }
+
+    function getEntryBasketsData() {
+      const baskets = [];
+      for (let i = 1; i <= 5; i++) {
+        const val = parseFloat(document.getElementById(`entryBakul${i}`).value);
+        baskets.push(isNaN(val) || val < 0 ? 0 : Number(val.toFixed(2)));
+      }
+      const totalBakulWeight = Number(baskets.reduce((sum, w) => sum + w, 0).toFixed(2));
+      return { baskets, totalBakulWeight };
+    }
+
+    function calculateBirdsAvgWeight(bakulWeight, emptyBakul) {
+      const gross = parseFloat(bakulWeight);
+      const empty = parseFloat(emptyBakul);
+      if (isNaN(gross) && isNaN(empty)) return 0;
+      const gVal = isNaN(gross) ? 0 : gross;
+      const eVal = isNaN(empty) ? 0 : empty;
+      if (gVal === 0 && eVal === 0) return 0;
+
+      const rawResult = (((gVal / 5) - eVal) / 500) * 1000;
+      if (!isFinite(rawResult) || rawResult < 0) return 0;
+      return Number(rawResult.toFixed(2));
+    }
+
+    function recalculateMetrics() {
+      const total = parseInt(document.getElementById('entryTotalBirds').value, 10) || 0;
+      const dead = parseInt(document.getElementById('entryDeadBirds').value, 10) || 0;
+      const cull = parseInt(document.getElementById('entryCullBirds').value, 10) || 0;
+
+      const loss = dead + cull;
+      const net = Math.max(0, total - loss);
+      const lossPct = total > 0 ? ((loss / total) * 100).toFixed(2) : '0.00';
+
+      document.getElementById('calcNetBirds').textContent = net.toLocaleString();
+      document.getElementById('calcLossBirds').textContent = loss.toLocaleString();
+      document.getElementById('calcLossPct').textContent = `${lossPct}%`;
+
+      const { totalBakulWeight } = getEntryBasketsData();
+      document.getElementById('calcTotalBakulDisplay').textContent = totalBakulWeight.toFixed(2);
+
+      const emptyVal = document.getElementById('entryEmptyBakul').value;
+      const avgWeight = calculateBirdsAvgWeight(totalBakulWeight, emptyVal);
+
+      document.getElementById('calcAvgWeightDisplay').innerHTML =
+        `${avgWeight.toFixed(2)} <span class="text-lg font-bold text-blue-100">g</span>`;
+
+      const eNum = parseFloat(emptyVal) || 0;
+      document.getElementById('calcFormulaBreakdown').textContent =
+        `(((${totalBakulWeight.toFixed(2)} / 5) - ${eNum.toFixed(2)}) / 500) × 1000 = ${avgWeight.toFixed(2)}g`;
+
+      validateEntryForm();
+    }
+
+    function validateEntryForm() {
+      const dateVal = document.getElementById('entryDate').value;
+      const timeVal = document.getElementById('entryTime').value;
+      const totalBirds = parseInt(document.getElementById('entryTotalBirds').value, 10) || 0;
+
+      const missing = [];
+      if (!selectedGroupId) missing.push('Group');
+      if (!selectedHouseId) missing.push('House');
+      if (!dateVal) missing.push('Date');
+      if (!timeVal) missing.push('Arrival Time');
+      if (!selectedSupplierId) missing.push('Supplier');
+      if (totalBirds <= 0) missing.push('Total Birds');
+
+      const submitBtn = document.getElementById('submitDocBtn');
+      const banner = document.getElementById('submitValidationBanner');
+      const msg = document.getElementById('submitValidationMsg');
+
+      if (missing.length === 0) {
+        submitBtn.disabled = false;
+        banner.className = 'flex items-center gap-2.5 p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold';
+        banner.querySelector('i').className = 'fa-solid fa-circle-check text-emerald-600 text-base shrink-0';
+        msg.textContent = 'All required fields complete. Ready to submit & share report via WhatsApp.';
+      } else {
+        submitBtn.disabled = true;
+        banner.className = 'flex items-center gap-2.5 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold';
+        banner.querySelector('i').className = 'fa-solid fa-circle-exclamation text-amber-600 text-base shrink-0';
+        msg.textContent = `Required before submitting: ${missing.join(', ')}.`;
+      }
+    }
+
+    async function handleDocSubmit() {
+      const dateVal = document.getElementById('entryDate').value;
+      const timeVal = document.getElementById('entryTime').value;
+      const totalBirds = parseInt(document.getElementById('entryTotalBirds').value, 10) || 0;
+      const deadBirds = parseInt(document.getElementById('entryDeadBirds').value, 10) || 0;
+      const cullBirds = parseInt(document.getElementById('entryCullBirds').value, 10) || 0;
+      const { baskets, totalBakulWeight: bakulWeight } = getEntryBasketsData();
+      const emptyBakul = parseFloat(document.getElementById('entryEmptyBakul').value) || 0;
+      const remarks = document.getElementById('entryRemarks').value.trim();
+
+      if (!selectedGroupId || !selectedHouseId || !dateVal || !timeVal || !selectedSupplierId || totalBirds <= 0) {
+        showToast('Please complete all required fields including Arrival Time.', 'warning');
+        return;
+      }
+
+      const groupObj = appDb.groups.find(g => g.id === selectedGroupId);
+      const houseObj = appDb.houses.find(h => h.id === selectedHouseId);
+      const supplierObj = appDb.suppliers.find(s => s.id === selectedSupplierId);
+      const conditionLabels = selectedConditionIds
+        .map(cid => appDb.conditions.find(c => c.id === cid)?.label)
+        .filter(Boolean);
+
+      const avgWeightGram = calculateBirdsAvgWeight(bakulWeight, emptyBakul);
+      const netBirds = Math.max(0, totalBirds - deadBirds - cullBirds);
+      const nowIso = new Date().toISOString();
+
+      const newLog = {
+        id: 'doc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        groupId: selectedGroupId,
+        groupName: groupObj ? groupObj.name : 'Unknown Group',
+        houseId: selectedHouseId,
+        houseName: houseObj ? houseObj.name : 'Unknown House',
+        date: dateVal,
+        time: timeVal,
+        supplierId: selectedSupplierId,
+        supplierName: supplierObj ? supplierObj.name : 'Unknown Supplier',
+        totalBirds,
+        deadBirds,
+        cullBirds,
+        netBirds,
+        baskets,
+        bakulWeight,
+        emptyBakul,
+        avgWeightGram,
+        conditionIds: [...selectedConditionIds],
+        conditionLabels,
+        remarks,
+        createdAt: nowIso,
+        updatedAt: nowIso
+      };
+
+      // Save to local database
+      appDb.logs.unshift(newLog);
+      saveLocalDatabase();
+
+      // Generate WhatsApp message & show modal
+      lastGeneratedWhatsAppText = buildSingleDocWhatsAppMessage(newLog);
+      document.getElementById('whatsappPreviewText').textContent = lastGeneratedWhatsAppText;
+      const waBtn = document.getElementById('modalWhatsAppBtn');
+      waBtn.onclick = () => {
+        const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(lastGeneratedWhatsAppText)}`;
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      };
+      document.getElementById('submitSuccessModal').classList.remove('hidden');
+
+      // Reset form for next house delivery
+      resetEntryForm(false);
+
+      // Sync to Dropbox in background
+      if (hasDropboxCredentials()) {
+        forceCloudSync(false, false);
+      }
+    }
+
+    function buildSingleDocWhatsAppMessage(log) {
+      const lossPct = log.totalBirds > 0
+        ? (((log.deadBirds + log.cullBirds) / log.totalBirds) * 100).toFixed(2)
+        : '0.00';
+      const condText = (log.conditionLabels && log.conditionLabels.length > 0)
+        ? log.conditionLabels.join(', ')
+        : 'Normal / Not Specified';
+      const basketBreakdown = Array.isArray(log.baskets) && log.baskets.length === 5
+        ? `\n*Individual Baskets:* ${log.baskets.map((w, idx) => `B${idx + 1}: ${Number(w).toFixed(2)}kg`).join(' | ')}`
+        : '';
+
+      return [
+        `*MIV DOC DELIVERY REPORT*`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `*Group:* ${log.groupName}`,
+        `*House:* ${log.houseName}`,
+        `*Date:* ${log.date}`,
+        `*Arrival Time:* ${formatTime12h(log.time)} (${log.time})`,
+        `*Supplier:* ${log.supplierName}`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `*Total Birds:* ${Number(log.totalBirds).toLocaleString()} birds`,
+        `*Dead (DOA):* ${Number(log.deadBirds).toLocaleString()}`,
+        `*Cull:* ${Number(log.cullBirds).toLocaleString()}`,
+        `*Net Live DOC:* ${Number(log.netBirds).toLocaleString()} (Loss: ${lossPct}%)`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `*5 Bakul Gross Weight:* ${Number(log.bakulWeight).toFixed(2)} kg${basketBreakdown}`,
+        `*Empty Bakul Weight:* ${Number(log.emptyBakul).toFixed(2)} kg`,
+        `*Birds Avg Weight:* *${Number(log.avgWeightGram).toFixed(2)} g*`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `*Condition:* ${condText}`,
+        log.remarks ? `*Remarks:* ${log.remarks}` : null,
+        `_Sent via MIV DOC Delivery App_`
+      ].filter(Boolean).join('\n');
+    }
+
+    function closeSubmitSuccessModal() {
+      document.getElementById('submitSuccessModal').classList.add('hidden');
+    }
+
+    function copyLastReportText() {
+      if (!lastGeneratedWhatsAppText) return;
+      const ta = document.createElement('textarea');
+      ta.value = lastGeneratedWhatsAppText;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Report text copied to clipboard!', 'success');
+    }
+
+    /**
+     * -------------------------------------------------------------------------
+     * TAB 2: MY LOGS RENDERING, SEARCH, FILTER, AMEND & DELETE
+     * -------------------------------------------------------------------------
+     */
+    function renderLogs() {
+      const groupFilterSel = document.getElementById('logGroupFilter');
+      const currentFilterVal = groupFilterSel.value || 'ALL';
+      groupFilterSel.innerHTML = `<option value="ALL">All Farm Groups</option>` +
+        appDb.groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+      groupFilterSel.value = currentFilterVal;
+
+      const searchTerm = (document.getElementById('logSearchInput').value || '').trim().toLowerCase();
+      const dateFilter = document.getElementById('logDateFilter').value;
+
+      const filtered = appDb.logs.filter(log => {
+        if (currentFilterVal !== 'ALL' && log.groupId !== currentFilterVal) return false;
+        if (dateFilter && log.date !== dateFilter) return false;
+        if (searchTerm) {
+          const hay = `${log.groupName} ${log.houseName} ${log.supplierName} ${log.remarks || ''} ${(log.conditionLabels || []).join(' ')}`.toLowerCase();
+          if (!hay.includes(searchTerm)) return false;
+        }
+        return true;
+      });
+
+      const container = document.getElementById('logsListContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-8 text-center space-y-2">
+            <div class="w-12 h-12 rounded-2xl bg-miv-50 text-miv-600 flex items-center justify-center text-xl mx-auto">
+              <i class="fa-solid fa-folder-open"></i>
+            </div>
+            <h3 class="text-sm font-extrabold text-slate-800">No DOC Delivery Logs Found</h3>
+            <p class="text-xs text-slate-500">Submit a daily delivery card or clear your active search filters.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(log => {
+        const condChips = (log.conditionLabels && log.conditionLabels.length > 0)
+          ? log.conditionLabels.map(lbl => `<span class="px-2.5 py-0.5 rounded-full bg-miv-50 text-miv-700 border border-miv-200 text-[11px] font-bold">${escapeHtml(lbl)}</span>`).join('')
+          : `<span class="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 text-[11px] font-semibold">Standard Condition</span>`;
+
+        return `
+          <article class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-4 sm:p-5 space-y-3">
+            <!-- Header Row -->
+            <div class="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="px-2.5 py-0.5 rounded-full bg-miv-600 text-white text-[11px] font-extrabold">${escapeHtml(log.groupName)}</span>
+                  <span class="px-2.5 py-0.5 rounded-full bg-blue-50 text-miv-800 border border-blue-200 text-[11px] font-extrabold">${escapeHtml(log.houseName)}</span>
+                </div>
+                <h3 class="text-sm sm:text-base font-extrabold text-slate-900 mt-1.5">${escapeHtml(log.supplierName)}</h3>
+                <p class="text-xs text-slate-500 font-medium">
+                  <i class="fa-regular fa-calendar mr-1"></i>${escapeHtml(log.date)} &bull;
+                  <i class="fa-regular fa-clock mr-1"></i>${formatTime12h(log.time)} (${escapeHtml(log.time)})
+                </p>
+              </div>
+              <div class="text-right bg-miv-50 border border-miv-200 rounded-2xl px-3 py-2">
+                <span class="block text-[10px] font-bold uppercase text-miv-700">Avg Chick Weight</span>
+                <span class="text-base sm:text-lg font-extrabold text-miv-900">${Number(log.avgWeightGram).toFixed(2)} g</span>
+              </div>
+            </div>
+
+            <!-- Metrics Grid -->
+            <div class="grid grid-cols-4 gap-2 bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 text-center">
+              <div>
+                <span class="block text-[10px] font-semibold text-slate-400">Total</span>
+                <span class="text-xs sm:text-sm font-extrabold text-slate-800">${Number(log.totalBirds).toLocaleString()}</span>
+              </div>
+              <div>
+                <span class="block text-[10px] font-semibold text-slate-400">Dead</span>
+                <span class="text-xs sm:text-sm font-extrabold text-rose-600">${Number(log.deadBirds).toLocaleString()}</span>
+              </div>
+              <div>
+                <span class="block text-[10px] font-semibold text-slate-400">Cull</span>
+                <span class="text-xs sm:text-sm font-extrabold text-amber-600">${Number(log.cullBirds).toLocaleString()}</span>
+              </div>
+              <div>
+                <span class="block text-[10px] font-semibold text-slate-400">Net Live</span>
+                <span class="text-xs sm:text-sm font-extrabold text-emerald-600">${Number(log.netBirds).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <!-- Basket Weights & Conditions -->
+            <div class="space-y-1 text-xs text-slate-600">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span>5-Bakul Gross: <strong class="text-slate-900">${Number(log.bakulWeight).toFixed(2)} kg</strong></span>
+                <span>Empty Bakul: <strong class="text-slate-900">${Number(log.emptyBakul).toFixed(2)} kg</strong></span>
+              </div>
+              ${Array.isArray(log.baskets) && log.baskets.length === 5 ? `
+                <div class="text-[11px] text-slate-500 font-mono bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
+                  ${log.baskets.map((w, idx) => `B${idx + 1}: ${Number(w).toFixed(2)}kg`).join(' • ')}
+                </div>
+              ` : ''}
+            </div>
+
+            <div class="flex flex-wrap gap-1.5">${condChips}</div>
+
+            ${log.remarks ? `<p class="text-xs text-slate-500 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100"><i class="fa-solid fa-comment-dots text-slate-400 mr-1.5"></i>${escapeHtml(log.remarks)}</p>` : ''}
+
+            <!-- Action Buttons: Re-Share, Amend (Protected), Delete (Protected) -->
+            <div class="pt-2 border-t border-slate-100 flex flex-wrap gap-2">
+              <button
+                onclick="reShareLogWhatsApp('${log.id}')"
+                class="tap-scale flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold flex items-center justify-center gap-1.5"
+              >
+                <i class="fa-brands fa-whatsapp text-sm"></i> Share
+              </button>
+              <button
+                onclick="promptAmendLog('${log.id}')"
+                class="tap-scale py-2.5 px-3.5 rounded-xl bg-miv-50 hover:bg-miv-100 text-miv-700 border border-miv-200 text-xs font-extrabold flex items-center gap-1.5"
+              >
+                <i class="fa-solid fa-pen"></i> Amend
+              </button>
+              <button
+                onclick="promptDeleteLog('${log.id}')"
+                class="tap-scale py-2.5 px-3.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-extrabold flex items-center gap-1.5"
+              >
+                <i class="fa-solid fa-trash"></i> Delete
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function reShareLogWhatsApp(logId) {
+      const log = appDb.logs.find(l => l.id === logId);
+      if (!log) return;
+      const text = buildSingleDocWhatsAppMessage(log);
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    function promptAmendLog(logId) {
+      if (sessionUnlocked) {
+        openAmendModal(logId);
+      } else {
+        requestPassword('Unlock Log Amendment', 'Enter password to edit log (default: 1234)', () => {
+          sessionUnlocked = true;
+          updateRoleHeaderUI();
+          openAmendModal(logId);
+        });
+      }
+    }
+
+    function promptDeleteLog(logId) {
+      if (sessionUnlocked) {
+        executeDeleteLog(logId);
+      } else {
+        requestPassword('Unlock Log Deletion', 'Enter password to delete log (default: 1234)', () => {
+          sessionUnlocked = true;
+          updateRoleHeaderUI();
+          executeDeleteLog(logId);
+        });
+      }
+    }
+
+    function executeDeleteLog(logId) {
+      appDb.logs = appDb.logs.filter(l => l.id !== logId);
+      if (!appDb.deletedIds.includes(logId)) {
+        appDb.deletedIds.push(logId);
+      }
+      saveLocalDatabase();
+      renderLogs();
+      showToast('Delivery log deleted & synced', 'info');
+      if (hasDropboxCredentials()) forceCloudSync(false, false);
+    }
+
+    let amendSelectedConditionIds = [];
+
+    function openAmendModal(logId) {
+      const log = appDb.logs.find(l => l.id === logId);
+      if (!log) return;
+
+      document.getElementById('amendLogId').value = log.id;
+
+      // Populate Groups
+      const grpSel = document.getElementById('amendGroupSelect');
+      grpSel.innerHTML = appDb.groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+      grpSel.value = log.groupId;
+
+      populateAmendHouses(log.houseId);
+
+      // Populate Suppliers
+      const supSel = document.getElementById('amendSupplierSelect');
+      supSel.innerHTML = appDb.suppliers.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+      supSel.value = log.supplierId;
+
+      document.getElementById('amendDateInput').value = log.date;
+      document.getElementById('amendTimeInput').value = log.time;
+      document.getElementById('amendTotalBirds').value = log.totalBirds;
+      document.getElementById('amendDeadBirds').value = log.deadBirds;
+      document.getElementById('amendCullBirds').value = log.cullBirds;
+      const fallbackPerBasket = Number(((Number(log.bakulWeight) || 0) / 5).toFixed(2));
+      for (let i = 1; i <= 5; i++) {
+        const bVal = Array.isArray(log.baskets) && log.baskets[i - 1] !== undefined
+          ? log.baskets[i - 1]
+          : fallbackPerBasket;
+        document.getElementById(`amendBakul${i}`).value = bVal;
+      }
+      document.getElementById('amendEmptyBakul').value = log.emptyBakul;
+      document.getElementById('amendRemarksInput').value = log.remarks || '';
+
+      amendSelectedConditionIds = Array.isArray(log.conditionIds) ? [...log.conditionIds] : [];
+      renderAmendConditionPills();
+      recalcAmendPreview();
+
+      document.getElementById('amendLogModal').classList.remove('hidden');
+    }
+
+    function populateAmendHouses(preselectHouseId = null) {
+      const grpId = document.getElementById('amendGroupSelect').value;
+      const houseSel = document.getElementById('amendHouseSelect');
+      const houses = appDb.houses.filter(h => h.groupId === grpId);
+      houseSel.innerHTML = houses.map(h => `<option value="${h.id}">${escapeHtml(h.name)}</option>`).join('');
+      if (preselectHouseId && houses.some(h => h.id === preselectHouseId)) {
+        houseSel.value = preselectHouseId;
+      }
+    }
+
+    function renderAmendConditionPills() {
+      const wrap = document.getElementById('amendConditionPills');
+      wrap.innerHTML = appDb.conditions.map(c => {
+        const active = amendSelectedConditionIds.includes(c.id);
+        return `
+          <button
+            type="button"
+            onclick="toggleAmendCondition('${c.id}')"
+            class="tap-scale px-3 py-1.5 rounded-xl text-xs font-bold border ${
+              active
+                ? 'bg-miv-600 text-white border-miv-600'
+                : 'bg-slate-50 text-slate-700 border-slate-200'
+            }"
+          >
+            ${escapeHtml(c.label)}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function toggleAmendCondition(cid) {
+      if (amendSelectedConditionIds.includes(cid)) {
+        amendSelectedConditionIds = amendSelectedConditionIds.filter(id => id !== cid);
+      } else {
+        amendSelectedConditionIds.push(cid);
+      }
+      renderAmendConditionPills();
+    }
+
+    function getAmendBasketsData() {
+      const baskets = [];
+      for (let i = 1; i <= 5; i++) {
+        const val = parseFloat(document.getElementById(`amendBakul${i}`).value);
+        baskets.push(isNaN(val) || val < 0 ? 0 : Number(val.toFixed(2)));
+      }
+      const totalBakulWeight = Number(baskets.reduce((sum, w) => sum + w, 0).toFixed(2));
+      return { baskets, totalBakulWeight };
+    }
+
+    function recalcAmendPreview() {
+      const { totalBakulWeight } = getAmendBasketsData();
+      document.getElementById('amendTotalBakulPreview').textContent = totalBakulWeight.toFixed(2);
+      const empty = document.getElementById('amendEmptyBakul').value;
+      const avg = calculateBirdsAvgWeight(totalBakulWeight, empty);
+      document.getElementById('amendAvgWeightPreview').textContent = `${avg.toFixed(2)} g`;
+    }
+
+    function closeAmendModal() {
+      document.getElementById('amendLogModal').classList.add('hidden');
+    }
+
+    function saveAmendedLog() {
+      const id = document.getElementById('amendLogId').value;
+      const idx = appDb.logs.findIndex(l => l.id === id);
+      if (idx === -1) return;
+
+      const groupId = document.getElementById('amendGroupSelect').value;
+      const houseId = document.getElementById('amendHouseSelect').value;
+      const supplierId = document.getElementById('amendSupplierSelect').value;
+      const date = document.getElementById('amendDateInput').value;
+      const time = document.getElementById('amendTimeInput').value;
+      const totalBirds = parseInt(document.getElementById('amendTotalBirds').value, 10) || 0;
+      const deadBirds = parseInt(document.getElementById('amendDeadBirds').value, 10) || 0;
+      const cullBirds = parseInt(document.getElementById('amendCullBirds').value, 10) || 0;
+      const { baskets, totalBakulWeight: bakulWeight } = getAmendBasketsData();
+      const emptyBakul = parseFloat(document.getElementById('amendEmptyBakul').value) || 0;
+      const remarks = document.getElementById('amendRemarksInput').value.trim();
+
+      if (!groupId || !houseId || !date || !time || totalBirds <= 0) {
+        showToast('Please ensure Group, House, Date, Time and Total Birds are valid.', 'warning');
+        return;
+      }
+
+      const groupObj = appDb.groups.find(g => g.id === groupId);
+      const houseObj = appDb.houses.find(h => h.id === houseId);
+      const supplierObj = appDb.suppliers.find(s => s.id === supplierId);
+      const conditionLabels = amendSelectedConditionIds
+        .map(cid => appDb.conditions.find(c => c.id === cid)?.label)
+        .filter(Boolean);
+
+      appDb.logs[idx] = {
+        ...appDb.logs[idx],
+        groupId,
+        groupName: groupObj ? groupObj.name : appDb.logs[idx].groupName,
+        houseId,
+        houseName: houseObj ? houseObj.name : appDb.logs[idx].houseName,
+        supplierId,
+        supplierName: supplierObj ? supplierObj.name : appDb.logs[idx].supplierName,
+        date,
+        time,
+        totalBirds,
+        deadBirds,
+        cullBirds,
+        netBirds: Math.max(0, totalBirds - deadBirds - cullBirds),
+        baskets,
+        bakulWeight,
+        emptyBakul,
+        avgWeightGram: calculateBirdsAvgWeight(bakulWeight, emptyBakul),
+        conditionIds: [...amendSelectedConditionIds],
+        conditionLabels,
+        remarks,
+        updatedAt: new Date().toISOString()
+      };
+
+      saveLocalDatabase();
+      closeAmendModal();
+      renderLogs();
+      showToast('Log amended & saved!', 'success');
+      if (hasDropboxCredentials()) forceCloudSync(false, false);
+    }
+
+    /**
+     * -------------------------------------------------------------------------
+     * TAB 3: EXECUTIVE FARM REPORT (GROUP & HOUSE BREAKDOWN)
+     * -------------------------------------------------------------------------
+     */
+    function getFilteredReportLogs() {
+      const groupFilter = document.getElementById('reportGroupFilter').value || 'ALL';
+      const fromDate = document.getElementById('reportFromDate').value;
+      const toDate = document.getElementById('reportToDate').value;
+
+      return appDb.logs.filter(log => {
+        if (groupFilter !== 'ALL' && log.groupId !== groupFilter) return false;
+        if (fromDate && log.date < fromDate) return false;
+        if (toDate && log.date > toDate) return false;
+        return true;
+      });
+    }
+
+    function renderExecutiveReport() {
+      const grpSel = document.getElementById('reportGroupFilter');
+      const currentVal = grpSel.value || 'ALL';
+      grpSel.innerHTML = `<option value="ALL">All Groups</option>` +
+        appDb.groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+      grpSel.value = currentVal;
+
+      document.getElementById('reportGeneratedTimestamp').textContent =
+        `Generated on ${new Date().toLocaleString()} • Group & House Breakdown`;
+
+      const logs = getFilteredReportLogs();
+
+      const totalDeliveries = logs.length;
+      const totalBirds = logs.reduce((s, l) => s + (Number(l.totalBirds) || 0), 0);
+      const totalDead = logs.reduce((s, l) => s + (Number(l.deadBirds) || 0), 0);
+      const totalCull = logs.reduce((s, l) => s + (Number(l.cullBirds) || 0), 0);
+      const totalNet = logs.reduce((s, l) => s + (Number(l.netBirds) || 0), 0);
+      const avgWeightOverall = totalDeliveries > 0
+        ? (logs.reduce((s, l) => s + (Number(l.avgWeightGram) || 0), 0) / totalDeliveries)
+        : 0;
+      const lossRate = totalBirds > 0 ? (((totalDead + totalCull) / totalBirds) * 100).toFixed(2) : '0.00';
+
+      // Render KPI Grid
+      document.getElementById('reportKpiGrid').innerHTML = `
+        <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-4 print-card">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Total Deliveries</span>
+          <p class="text-2xl font-extrabold text-miv-700 mt-1">${totalDeliveries}</p>
+        </div>
+        <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-4 print-card">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Total Birds Received</span>
+          <p class="text-2xl font-extrabold text-slate-900 mt-1">${totalBirds.toLocaleString()}</p>
+        </div>
+        <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-4 print-card">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Net Live DOC</span>
+          <p class="text-2xl font-extrabold text-emerald-600 mt-1">${totalNet.toLocaleString()}</p>
+        </div>
+        <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-4 print-card">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Total Dead (DOA)</span>
+          <p class="text-2xl font-extrabold text-rose-600 mt-1">${totalDead.toLocaleString()}</p>
+        </div>
+        <div class="bg-white rounded-3xl shadow-material border border-slate-200/80 p-4 print-card">
+          <span class="text-[11px] font-bold text-slate-400 uppercase">Total Cull (Loss ${lossRate}%)</span>
+          <p class="text-2xl font-extrabold text-amber-600 mt-1">${totalCull.toLocaleString()}</p>
+        </div>
+        <div class="bg-gradient-to-br from-miv-700 to-miv-600 text-white rounded-3xl shadow-material p-4 print-card">
+          <span class="text-[11px] font-bold text-blue-100 uppercase">Fleet Avg Chick Weight</span>
+          <p class="text-2xl font-extrabold mt-1">${avgWeightOverall.toFixed(2)} g</p>
+        </div>
+      `;
+
+      // Render Group & House Breakdown
+      const groupsToRender = currentVal === 'ALL'
+        ? appDb.groups
+        : appDb.groups.filter(g => g.id === currentVal);
+
+      document.getElementById('reportGroupBreakdown').innerHTML = groupsToRender.map(group => {
+        const groupLogs = logs.filter(l => l.groupId === group.id);
+        const groupHouses = appDb.houses.filter(h => h.groupId === group.id);
+
+        const gTotal = groupLogs.reduce((s, l) => s + (Number(l.totalBirds) || 0), 0);
+        const gNet = groupLogs.reduce((s, l) => s + (Number(l.netBirds) || 0), 0);
+        const gAvgWt = groupLogs.length > 0
+          ? (groupLogs.reduce((s, l) => s + (Number(l.avgWeightGram) || 0), 0) / groupLogs.length).toFixed(2)
+          : '0.00';
+
+        const houseRows = groupHouses.map(house => {
+          const hLogs = groupLogs.filter(l => l.houseId === house.id);
+          const hTotal = hLogs.reduce((s, l) => s + (Number(l.totalBirds) || 0), 0);
+          const hDead = hLogs.reduce((s, l) => s + (Number(l.deadBirds) || 0), 0);
+          const hCull = hLogs.reduce((s, l) => s + (Number(l.cullBirds) || 0), 0);
+          const hNet = hLogs.reduce((s, l) => s + (Number(l.netBirds) || 0), 0);
+          const hAvg = hLogs.length > 0
+            ? (hLogs.reduce((s, l) => s + (Number(l.avgWeightGram) || 0), 0) / hLogs.length).toFixed(2)
+            : '0.00';
+          const latestSupplier = hLogs.length > 0 ? hLogs[0].supplierName : '—';
+
+          return `
+            <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="font-extrabold text-sm text-slate-900">${escapeHtml(house.name)}</span>
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded-full ${hLogs.length ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
+                    ${hLogs.length} Delivery
+                  </span>
+                </div>
+                <p class="text-xs text-slate-500 mt-0.5">Supplier: <strong class="text-slate-700">${escapeHtml(latestSupplier)}</strong></p>
+              </div>
+              <div class="flex items-center gap-4 text-right">
+                <div>
+                  <span class="block text-[10px] font-bold text-slate-400">Net / Total</span>
+                  <span class="text-xs font-extrabold text-slate-800">${hNet.toLocaleString()} / ${hTotal.toLocaleString()}</span>
+                </div>
+                <div>
+                  <span class="block text-[10px] font-bold text-slate-400">DOA / Cull</span>
+                  <span class="text-xs font-extrabold text-rose-600">${hDead} / ${hCull}</span>
+                </div>
+                <div class="bg-white border border-miv-200 rounded-xl px-2.5 py-1.5">
+                  <span class="block text-[10px] font-bold text-miv-600">Avg Wt</span>
+                  <span class="text-xs font-extrabold text-miv-900">${hAvg} g</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="bg-white rounded-3xl shadow-material border border-blue-100 p-5 space-y-3 print-card">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h3 class="text-base font-extrabold text-miv-800">${escapeHtml(group.name)}</h3>
+                <p class="text-xs text-slate-500">${groupHouses.length} Houses &bull; ${groupLogs.length} Deliveries Recorded</p>
+              </div>
+              <div class="flex items-center gap-3 text-right">
+                <div>
+                  <span class="block text-[10px] font-bold text-slate-400">Group Net DOC</span>
+                  <span class="text-sm font-extrabold text-emerald-600">${gNet.toLocaleString()} <span class="text-xs text-slate-400 font-normal">/ ${gTotal.toLocaleString()}</span></span>
+                </div>
+                <div class="bg-miv-50 border border-miv-200 rounded-xl px-3 py-1.5">
+                  <span class="block text-[10px] font-bold text-miv-700">Group Avg Wt</span>
+                  <span class="text-sm font-extrabold text-miv-900">${gAvgWt} g</span>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-2">
+              ${houseRows || '<p class="text-xs text-slate-400">No houses configured for this group.</p>'}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function shareExecutiveReportWhatsApp() {
+      const logs = getFilteredReportLogs();
+      const totalBirds = logs.reduce((s, l) => s + (Number(l.totalBirds) || 0), 0);
+      const totalDead = logs.reduce((s, l) => s + (Number(l.deadBirds) || 0), 0);
+      const totalCull = logs.reduce((s, l) => s + (Number(l.cullBirds) || 0), 0);
+      const totalNet = logs.reduce((s, l) => s + (Number(l.netBirds) || 0), 0);
+      const avgWt = logs.length > 0
+        ? (logs.reduce((s, l) => s + (Number(l.avgWeightGram) || 0), 0) / logs.length).toFixed(2)
+        : '0.00';
+
+      const groupLines = appDb.groups.map(g => {
+        const gLogs = logs.filter(l => l.groupId === g.id);
+        const gNet = gLogs.reduce((s, l) => s + (Number(l.netBirds) || 0), 0);
+        const gAvg = gLogs.length > 0
+          ? (gLogs.reduce((s, l) => s + (Number(l.avgWeightGram) || 0), 0) / gLogs.length).toFixed(2)
+          : '0.00';
+        return `• *${g.name}*: ${gLogs.length} deliv | Net ${gNet.toLocaleString()} | Avg ${gAvg}g`;
+      }).join('\n');
+
+      const text = [
+        `*MIV DOC EXECUTIVE FARM REPORT*`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `*Total Deliveries:* ${logs.length}`,
+        `*Total Received:* ${totalBirds.toLocaleString()}`,
+        `*Net Live DOC:* ${totalNet.toLocaleString()}`,
+        `*Dead / Cull:* ${totalDead.toLocaleString()} / ${totalCull.toLocaleString()}`,
+        `*Fleet Avg Weight:* *${avgWt} g*`,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `*GROUP SUMMARY:*`,
+        groupLines,
+        `━━━━━━━━━━━━━━━━━━━━`,
+        `_Generated via MIV DOC Delivery App_`
+      ].join('\n');
+
+      const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    /**
+     * -------------------------------------------------------------------------
+     * TAB 4: ADMIN MASTER DATA & SECURITY MANAGEMENT
+     * -------------------------------------------------------------------------
+     */
+    function switchAdminSubTab(subKey) {
+      ['groupsHouses', 'suppliers', 'conditions', 'cloudSecurity'].forEach(key => {
+        const panel = document.getElementById(`adminPanel-${key}`);
+        const btn = document.getElementById(`adminSub-${key}`);
+        if (panel) panel.classList.toggle('hidden', key !== subKey);
+        if (btn) {
+          btn.className = key === subKey
+            ? 'admin-sub-btn tap-scale shrink-0 px-4 py-2.5 rounded-2xl text-xs font-bold bg-miv-600 text-white shadow'
+            : 'admin-sub-btn tap-scale shrink-0 px-4 py-2.5 rounded-2xl text-xs font-bold bg-white text-slate-700 border border-slate-200';
+        }
+      });
+    }
+
+    function renderAdminPanels() {
+      // Groups list
+      document.getElementById('adminGroupsList').innerHTML = appDb.groups.map(g => {
+        const houseCount = appDb.houses.filter(h => h.groupId === g.id).length;
+        return `
+          <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+            <div>
+              <p class="text-xs sm:text-sm font-extrabold text-slate-800">${escapeHtml(g.name)}</p>
+              <p class="text-[11px] text-slate-500">${houseCount} house(s) linked</p>
+            </div>
+            <button onclick="adminDeleteGroup('${g.id}')" class="tap-scale px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      // Group dropdown for adding new house
+      document.getElementById('newHouseGroupSelect').innerHTML = appDb.groups.map(g =>
+        `<option value="${g.id}">${escapeHtml(g.name)}</option>`
+      ).join('');
+
+      // Houses list
+      document.getElementById('adminHousesList').innerHTML = appDb.houses.map(h => {
+        const grp = appDb.groups.find(g => g.id === h.groupId);
+        return `
+          <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-miv-100 text-miv-800 text-[11px] font-extrabold">${escapeHtml(grp ? grp.name : 'Unassigned')}</span>
+              <span class="text-xs sm:text-sm font-extrabold text-slate-800">${escapeHtml(h.name)}</span>
+            </div>
+            <button onclick="adminDeleteHouse('${h.id}')" class="tap-scale px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      // Suppliers list
+      document.getElementById('adminSuppliersList').innerHTML = appDb.suppliers.map(s => `
+        <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+          <span class="text-xs sm:text-sm font-extrabold text-slate-800">${escapeHtml(s.name)}</span>
+          <button onclick="adminDeleteSupplier('${s.id}')" class="tap-scale px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+
+      // Conditions list
+      document.getElementById('adminConditionsList').innerHTML = appDb.conditions.map(c => `
+        <div class="flex items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 border border-slate-200">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full ${c.tone === 'alert' ? 'bg-rose-500' : c.tone === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'}"></span>
+            <span class="text-xs sm:text-sm font-extrabold text-slate-800">${escapeHtml(c.label)}</span>
+          </div>
+          <button onclick="adminDeleteCondition('${c.id}')" class="tap-scale px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function adminAddGroup() {
+      const input = document.getElementById('newGroupNameInput');
+      const name = input.value.trim();
+      if (!name) return;
+      appDb.groups.push({ id: 'grp_' + Date.now(), name, updatedAt: new Date().toISOString() });
+      input.value = '';
+      persistAdminChange('Group added');
+    }
+
+    function adminDeleteGroup(id) {
+      if (appDb.groups.length <= 1) {
+        showToast('At least one Farm Group is required.', 'warning');
+        return;
+      }
+      appDb.groups = appDb.groups.filter(g => g.id !== id);
+      appDb.deletedIds.push(id);
+      if (selectedGroupId === id) selectedGroupId = appDb.groups[0].id;
+      persistAdminChange('Group removed');
+    }
+
+    function adminAddHouse() {
+      const groupId = document.getElementById('newHouseGroupSelect').value;
+      const input = document.getElementById('newHouseNameInput');
+      const name = input.value.trim();
+      if (!groupId || !name) return;
+      appDb.houses.push({ id: 'h_' + Date.now(), groupId, name, updatedAt: new Date().toISOString() });
+      input.value = '';
+      persistAdminChange('House added');
+    }
+
+    function adminDeleteHouse(id) {
+      appDb.houses = appDb.houses.filter(h => h.id !== id);
+      appDb.deletedIds.push(id);
+      if (selectedHouseId === id) selectedHouseId = '';
+      persistAdminChange('House removed');
+    }
+
+    function adminAddSupplier() {
+      const input = document.getElementById('newSupplierInput');
+      const name = input.value.trim();
+      if (!name) return;
+      appDb.suppliers.push({ id: 'sup_' + Date.now(), name, updatedAt: new Date().toISOString() });
+      input.value = '';
+      persistAdminChange('Supplier added');
+    }
+
+    function adminDeleteSupplier(id) {
+      appDb.suppliers = appDb.suppliers.filter(s => s.id !== id);
+      appDb.deletedIds.push(id);
+      if (selectedSupplierId === id) selectedSupplierId = '';
+      persistAdminChange('Supplier removed');
+    }
+
+    function adminAddCondition() {
+      const input = document.getElementById('newConditionLabelInput');
+      const tone = document.getElementById('newConditionToneSelect').value;
+      const label = input.value.trim();
+      if (!label) return;
+      appDb.conditions.push({ id: 'cond_' + Date.now(), label, tone, updatedAt: new Date().toISOString() });
+      input.value = '';
+      persistAdminChange('Condition pill added');
+    }
+
+    function adminDeleteCondition(id) {
+      appDb.conditions = appDb.conditions.filter(c => c.id !== id);
+      appDb.deletedIds.push(id);
+      selectedConditionIds = selectedConditionIds.filter(cid => cid !== id);
+      persistAdminChange('Condition pill removed');
+    }
+
+    function adminUpdatePassword() {
+      const input = document.getElementById('adminNewPasswordInput');
+      const nextPwd = input.value.trim();
+      if (nextPwd.length < 4) {
+        showToast('Password must be at least 4 characters.', 'warning');
+        return;
+      }
+      appDb.meta.adminPassword = nextPwd;
+      input.value = '';
+      persistAdminChange('Security password updated');
+    }
+
+    function persistAdminChange(toastMsg) {
+      saveLocalDatabase();
+      renderAllUI();
+      showToast(toastMsg, 'success');
+      if (hasDropboxCredentials()) {
+        forceCloudSync(false, false);
+      }
+    }
+
+    /**
+     * -------------------------------------------------------------------------
+     * GLOBAL RENDER & SHARED UTILITIES
+     * -------------------------------------------------------------------------
+     */
+    function renderAllUI() {
+      if (!selectedGroupId && appDb.groups.length > 0) {
+        selectedGroupId = appDb.groups[0].id;
+      }
+      renderEntryPills();
+      validateEntryForm();
+      updateLogCountBadge();
+      updateRoleHeaderUI();
+      if (currentTab === 'logs') renderLogs();
+      if (currentTab === 'report') renderExecutiveReport();
+      if (currentTab === 'admin') renderAdminPanels();
+    }
+
+    function updateLogCountBadge() {
+      const badge = document.getElementById('navLogCountBadge');
+      if (!badge) return;
+      const count = appDb.logs.length;
+      badge.textContent = count;
+      badge.classList.toggle('hidden', count === 0);
+    }
+
+    function formatTime12h(time24) {
+      if (!time24 || !time24.includes(':')) return time24 || '';
+      const [hStr, mStr] = time24.split(':');
+      let h = parseInt(hStr, 10);
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${mStr} ${ampm}`;
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    let toastTimer = null;
+    function showToast(message, type = 'info') {
+      const banner = document.getElementById('toastBanner');
+      const icon = document.getElementById('toastIcon');
+      const msg = document.getElementById('toastMessage');
+
+      msg.textContent = message;
+      icon.className = 'fa-solid ';
+      if (type === 'success') icon.className += 'fa-circle-check text-emerald-400';
+      else if (type === 'warning') icon.className += 'fa-triangle-exclamation text-amber-400';
+      else icon.className += 'fa-circle-info text-blue-400';
+
+      banner.classList.remove('hidden');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => banner.classList.add('hidden'), 3200);
+    }
+  </script>
+</body>
+</html>
